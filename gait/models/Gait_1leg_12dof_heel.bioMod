@@ -1,0 +1,1001 @@
+// --------------------------------------------------------------------------------------------------------
+// --------------------------------------------------------------------------------------------------------
+// ANsWER | F. Moissenet | Right lower limb model | Full version (17 muscles, 6 DoFs)
+// --------------------------------------------------------------------------------------------------------
+// --------------------------------------------------------------------------------------------------------
+version 4
+gravity 0 0 -9.8
+
+// --------------------------------------------------------------------------------------------------------
+// General informations
+// --------------------------------------------------------------------------------------------------------
+// segment masses adjusted based on the regression table proposed by Dumas et al. 2018
+// the model has been scaled using Opensim 3.3 based on demographic parameters of a 35-old man, 166cm, 66kg
+// root is defined with X along walkway, Z vertical, Y perpendicular to Z and X
+//
+// Adjusted muscles value based on OpenSim model "Walk armless" by Arnold, Hamner, Ward, Lieber and Delp
+
+// for each segment :
+// flexion/extension -> z axis
+// abduction/adduction -> x axis
+// rotation interne/externe -> y axis
+
+// --------------------------------------------------------------------------------------------------------
+// Variables
+// --------------------------------------------------------------------------------------------------------
+variables
+	$fiso_01 573 //1047 //glut_max_1
+	$fiso_02 819 //1496 //glut_max_2
+	$fiso_03 552 //1008 //glut_max_3
+	$fiso_04 1119 //1163 //glut_med_1
+	$fiso_05 873 //814 //glut_med_2
+	$fiso_06 1000 //927 //glut_med_3
+	$fiso_07 1288 //2342 // semimem
+	$fiso_08 410 //629 //semiten
+	$fiso_09 2700 //1397 // bi fem lh
+	$fiso_10 1169 //1397 //rectus fem
+	$fiso_11 1294 //2924 //vaste med
+	$fiso_12 1365 //1806 //vaste int
+	$fiso_13 1871 //5479 //vaste lat
+	$fiso_14 1600 //3315 //gas med
+	$fiso_15 700 //1676 //gas lat
+	$fiso_16 4000 //6593 //soleus
+	$fiso_17 3000 //1306 //tib ant
+	$fiso_18 2000 //1086 //iliacus
+	$fiso_19 3000 //1518 //psoas
+endvariables
+
+// --------------------------------------------------------------------------------------------------------
+// Informations about pelvis segment
+// --------------------------------------------------------------------------------------------------------
+// ---- Segment
+segment pelvis
+    RTinMatrix	1
+	RT 
+		1	0	0	0
+		0	0	-1	0
+		0	1	0	0
+		0	0	0	1
+	translations	xyz
+	rotations	yxz
+        rangesQ -10   10 
+                -0.5  1.5 
+                -5    5 
+                -pi/2 pi/2 
+                -pi/4 pi/4 
+                -pi/4 pi/4
+        rangesQdot -5      5
+ 	               -5      5
+                   -5      5
+                   -5.2360 5.2360 
+                   -5.2360 5.2360 
+                   -5.2360 5.2360
+	mass	7.8384
+	inertia
+		0.058836	0	0
+		0	0.064617	0
+		0	0	0.064617
+	com	-0.093546	-0.028679	0
+
+	mesh -0.020816	-0.029674	-0.12337
+	mesh -0.17639	 0.012676	-0.0489
+	mesh -0.17639	 0.012676	 0.0489
+	mesh -0.020816	-0.029674	 0.12337
+	mesh -0.020816	-0.029674	-0.12337
+endsegment
+// ---- Markers
+marker	L_IAS //0
+	parent	pelvis
+	position	-0.020816	-0.029674	-0.12337
+	anatomical	1
+endmarker
+marker	L_IPS //1
+	parent	pelvis
+	position	-0.17639	0.012676	-0.0489
+	anatomical	1
+endmarker
+marker	R_IPS //2
+	parent	pelvis
+	position	-0.17639	0.012676	0.0489
+	anatomical	1
+endmarker
+marker	R_IAS //3
+	parent	pelvis
+	position	-0.020816	-0.029674	0.12337
+	anatomical	1
+endmarker
+
+// --------------------------------------------------------------------------------------------------------
+// Informations about femur_r segment
+// --------------------------------------------------------------------------------------------------------
+// ---- Segment
+segment femur_r
+	parent pelvis
+    RTinMatrix	1
+	RT
+		1	0	0	-0.083804
+		0	1	0	-0.09161
+		0	0	1	0.082232
+		0	0	0	1
+	rotations	xyz
+        rangesQ    -pi/9  pi/9 
+                   -pi/9  pi/9 
+                   -pi/4  pi/4
+        rangesQdot -4    4.5 
+                   -4    4.5  
+                   -4    4.5
+	mass	9.8454
+	inertia
+		0.14317	0	0
+		0	0.036976	0
+		0	0	0.14317
+	com	0	-0.14785	0
+
+	mesh  0   0       0
+	mesh  0  -0.3627  0
+endsegment
+// ---- Markers
+marker	R_FTC //4
+	parent	femur_r
+	position	-0.013006	-0.025906	0.081625
+	anatomical	1
+endmarker
+marker	R_Thigh_Top //5
+	parent	femur_r
+	position	0.01451	-0.1373	0.075053
+	anatomical	1
+endmarker
+marker	R_Thigh_Down //6
+	parent	femur_r
+	position	0.023087	-0.20578	0.065
+	anatomical	1
+endmarker
+marker	R_Thigh_Front //7
+	parent	femur_r
+	position	0.049445	-0.16781	0.067705
+	anatomical	1
+endmarker
+marker	R_Thigh_Back //8
+	parent	femur_r
+	position	-0.015012	-0.17638	0.071602
+	anatomical	1
+endmarker
+marker	R_FLE //9
+	parent	femur_r
+	position	-0.00023683	-0.37117	0.053452
+	anatomical	1
+endmarker
+marker	R_FME //10
+	parent	femur_r
+	position	-0.0038077	-0.37454	-0.052836
+	anatomical	1
+endmarker
+
+// --------------------------------------------------------------------------------------------------------
+// Informations about tibia_r segment
+// --------------------------------------------------------------------------------------------------------
+// ---- Segment
+segment tibia_r
+	parent femur_r
+    RTinMatrix	1
+	RT
+		1	0	0	0
+		0	1	0	-0.3627
+		0	0	1	0
+		0	0	0	1
+	rotations	z
+    rangesQ    -pi/2  0.0873
+    rangesQdot -10    10
+	mass	3.0385
+	inertia
+		0.027795	0	0
+		0	0.0047781	0
+		0	0	0.028936
+	com	0	-0.17087	0
+
+	mesh  0   0        0
+	mesh  0  -0.42392  0
+endsegment
+// ---- Markers
+marker	R_FAX //11
+	parent	tibia_r
+	position	-0.011332	-0.08518	0.05617
+	anatomical	1
+endmarker
+marker	R_TTC //12
+	parent	tibia_r
+	position	0.047765	-0.067362	-0.0016557
+	anatomical	1
+endmarker
+marker	R_Shank_Top //13
+	parent	tibia_r
+	position	-0.0325225	-0.190916	0.0504195
+	anatomical	1
+endmarker
+marker	R_Shank_Down //14
+	parent	tibia_r
+	position	-0.0251773	-0.26157	0.0481634
+	anatomical	1
+endmarker
+marker	R_Shank_Front //15
+	parent	tibia_r
+	position	0.0110749	-0.221199	0.0498432
+	anatomical	1
+endmarker
+marker	R_Shank_Tibia //16
+	parent	tibia_r
+	position	0.0350151	-0.216442	-0.00246147
+	anatomical	1
+endmarker
+marker	R_FAL //17
+	parent	tibia_r
+	position	-0.0110108	-0.41033	0.0507917
+	anatomical	1
+endmarker
+marker	R_TAM //18
+	parent	tibia_r
+	position	0.00917708	-0.384122	-0.0353354
+	anatomical	1
+endmarker
+
+// --------------------------------------------------------------------------------------------------------
+// Informations about patella_r segment
+// --------------------------------------------------------------------------------------------------------
+// ---- Segment
+segment patella_r
+	parent tibia_r
+    RTinMatrix	1
+	RT
+		 0.99916	            0.040979194721223106	0	 0.0496
+		-0.040979194721223106	0.99916	                0	-0.022712
+		 0	                    0	                    1	 0.0024
+		 0	                    0	                    0	 1
+	mass	0.091226
+	inertia
+		2.3335e-06	0	0
+		0	1.1667e-05	0
+		0	0	1.1667e-05
+	com	0.0016412	0.024071	0
+endsegment
+// ---- Markers
+// no marker
+
+// --------------------------------------------------------------------------------------------------------
+// Informations about talus_r segment
+// --------------------------------------------------------------------------------------------------------
+// ---- Segment
+segment talus_r
+	parent tibia_r
+    RTinMatrix	1
+	RT
+		1	0	0	0
+		0	1	0	-0.42392
+		0	0	1	0
+		0	0	0	1
+	rotations	yz
+    	rangesQ -pi/6 pi/6
+		        -pi/6 pi/6
+    	rangesQdot -7   7
+		           -7   7
+	inertia
+		2.7894e-06	0	0
+		0	9.298e-07	0
+		0	0	2.7894e-06
+	com	0.0054828	0.0022928	0
+
+	mesh  0         0        0
+	mesh -0.048617 -0.041819 0.0078952
+endsegment
+// ---- Markers
+// no marker
+
+// --------------------------------------------------------------------------------------------------------
+// Informations about foot_r segment
+// --------------------------------------------------------------------------------------------------------
+// ---- Segment
+segment foot_r
+	parent talus_r
+    RTinMatrix	1
+	RT
+		1	0	0	-0.048617
+		0	1	0	-0.041819
+		0	0	1	0.0078952
+		0	0	0	1
+	mass	0.82805
+	inertia
+		0.00084519	0	0
+		0	0.0021516	0
+		0	0	0.0024947
+	com	0.10155	0.015551	0
+endsegment
+// ---- Markers
+// no marker
+
+// --------------------------------------------------------------------------------------------------------
+// Informations about foot_marker_r segment
+// --------------------------------------------------------------------------------------------------------
+// ---- Segment
+segment foot_marker_r
+	parent foot_r
+    RTinMatrix	1
+	RT
+		1	0	0	-0.019937
+		0	1	0	0.017944
+		0	0	1	-0.0099687
+		0	0	0	1
+	mass	0
+	inertia
+		0	0	0
+		0	0	0
+		0	0	0
+	com	0	0	0
+
+	mesh 0.0054278	 -0.02	  0.00220395 // FCC
+	mesh 0.144628	 -0.02	 -0.030874   // FMP1
+	mesh 0.19973	 -0.02	 -0.0323195  // FM1
+	mesh 0.200778	 -0.02	  0.0127656  // FM2
+	mesh 0.156485	 -0.02	  0.0638694  // FM5
+	mesh 0.096359	 -0.02	  0.0532144  // FMP5
+	mesh 0.0054278	 -0.02	  0.00220395 // FCC
+endsegment
+// ---- Markers
+marker	R_FCC //19
+	parent	foot_marker_r
+	position	0.0054278	0.00177226	0.00220395
+	technical	1
+endmarker
+marker	R_FM1 //20
+	parent	foot_marker_r
+	position	0.19973	-0.00594403	-0.0323195
+	technical	1
+endmarker
+marker	R_FMP1 //21
+	parent	foot_marker_r
+	position	0.144628	0.00808546	-0.030874
+	technical	1
+endmarker
+marker	R_FM2 /22
+	parent	foot_marker_r
+	position	0.200778	-0.00525585	0.0127656
+	technical	1
+endmarker
+marker	R_FMP2 //23
+	parent	foot_marker_r
+	position	0.135043	0.0244291	0.00583628
+	technical	1
+endmarker
+marker	R_FM5 //24
+	parent	foot_marker_r
+	position	0.156485	-0.00712829	0.0638694
+	technical	1
+endmarker
+marker	R_FMP5 //25
+	parent	foot_marker_r
+	position	0.096359	0.00353103	0.0532144
+	technical	1
+endmarker
+
+// ---- Contact
+contact    Heel_r
+	parent    foot_marker_r
+	position    0.0254278	-0.02	0.00220395
+	axis    xyz
+endcontact
+
+// --------------------------------------------------------------------------------------------------------
+// Markers Contact
+// --------------------------------------------------------------------------------------------------------
+marker	 Heel_r //26
+	parent    foot_marker_r
+	position    0.0254278	  -0.02	   0.00220395
+	technical	1
+endmarker
+marker	Meta_1_r //27
+	parent    foot_marker_r
+	position    0.19973	 -0.02	  -0.0323195
+	technical	1
+endmarker
+marker	 Meta_5_r //28
+	parent    foot_marker_r
+	position    0.156485	 -0.02	   0.0638694
+	technical	1
+endmarker
+marker	  Toe_r //29
+	parent    foot_marker_r
+	position    0.24	     -0.02    -0.0323195
+	technical	1
+endmarker
+
+// --------------------------------------------------------------------------------------------------------
+// Informations about toes_r segment
+// --------------------------------------------------------------------------------------------------------
+// ---- Segment
+segment toes_r
+	parent foot_r
+    RTinMatrix	1
+	RT 
+		1	0	0	0.17625
+		0	1	0	-0.0019937
+		0	0	1	0.0010766
+		0	0	0	1
+	mass	0.091226
+	inertia
+		9.298e-05	0	0
+		0	0.0002371	0
+		0	0	0.00027336
+	com	0.030604	-0.0025919	-0.010467
+endsegment
+// ---- Markers
+// no marker
+
+// --------------------------------------------------------------------------------------------------------
+// Informations about muscle groups
+// --------------------------------------------------------------------------------------------------------
+musclegroup group1
+	OriginParent	pelvis
+	InsertionParent	femur_r
+endmusclegroup
+musclegroup group2
+	OriginParent	pelvis
+	InsertionParent	tibia_r
+endmusclegroup
+musclegroup group3
+	OriginParent	pelvis
+	InsertionParent	patella_r
+endmusclegroup
+musclegroup group4
+	OriginParent	pelvis
+	InsertionParent	talus_r
+endmusclegroup
+musclegroup group5
+	OriginParent	pelvis
+	InsertionParent	foot_r
+endmusclegroup
+musclegroup group6
+	OriginParent	pelvis
+	InsertionParent	foot_marker_r
+endmusclegroup
+musclegroup group7
+	OriginParent	pelvis
+	InsertionParent	toes_r
+endmusclegroup
+musclegroup group8
+	OriginParent	femur_r
+	InsertionParent	tibia_r
+endmusclegroup
+musclegroup group9
+	OriginParent	femur_r
+	InsertionParent	patella_r
+endmusclegroup
+musclegroup group10
+	OriginParent	femur_r
+	InsertionParent	talus_r
+endmusclegroup
+musclegroup group11
+	OriginParent	femur_r
+	InsertionParent	foot_r
+endmusclegroup
+musclegroup group12
+	OriginParent	femur_r
+	InsertionParent	foot_marker_r
+endmusclegroup
+musclegroup group13
+	OriginParent	femur_r
+	InsertionParent	toes_r
+endmusclegroup
+musclegroup group14
+	OriginParent	tibia_r
+	InsertionParent	patella_r
+endmusclegroup
+musclegroup group15
+	OriginParent	tibia_r
+	InsertionParent	talus_r
+endmusclegroup
+musclegroup group16
+	OriginParent	tibia_r
+	InsertionParent	foot_r
+endmusclegroup
+musclegroup group17
+	OriginParent	tibia_r
+	InsertionParent	foot_marker_r
+endmusclegroup
+musclegroup group18
+	OriginParent	tibia_r
+	InsertionParent	toes_r
+endmusclegroup
+musclegroup group19
+	OriginParent	patella_r
+	InsertionParent	talus_r
+endmusclegroup
+musclegroup group20
+	OriginParent	patella_r
+	InsertionParent	foot_r
+endmusclegroup
+musclegroup group21
+	OriginParent	patella_r
+	InsertionParent	foot_marker_r
+endmusclegroup
+musclegroup group22
+	OriginParent	patella_r
+	InsertionParent	toes_r
+endmusclegroup
+musclegroup group23
+	OriginParent	talus_r
+	InsertionParent	foot_r
+endmusclegroup
+musclegroup group24
+	OriginParent	talus_r
+	InsertionParent	foot_marker_r
+endmusclegroup
+musclegroup group25
+	OriginParent	talus_r
+	InsertionParent	toes_r
+endmusclegroup
+musclegroup group26
+	OriginParent	foot_r
+	InsertionParent	foot_marker_r
+endmusclegroup
+musclegroup group27
+	OriginParent	foot_r
+	InsertionParent	toes_r
+endmusclegroup
+musclegroup group28
+	OriginParent	foot_marker_r
+	InsertionParent	toes_r
+endmusclegroup
+
+// --------------------------------------------------------------------------------------------------------
+// Informations about glut_max1_r
+// --------------------------------------------------------------------------------------------------------
+// ---- Muscle
+muscle glut_max1_r
+	Type				hillthelen
+	statetype        	degroote
+	musclegroup			group1
+	OriginPosition		-0.13126 0.047251 0.063481
+	InsertionPosition	-0.025256 -0.051606 0.055607
+	optimalLength		0.15059
+	maximalForce		$fiso_01
+	maxExcitation		1
+	tendonSlackLength	0.13256
+	pennationAngle		0.087266
+endmuscle
+// ---- Via points
+viapoint glut_max1_r
+	parent		pelvis
+	muscle		glut_max1_r
+	musclegroup	group1
+	position	-0.14498 -0.016788 0.087575
+endviapoint
+viapoint glut_max1_r
+	parent		femur_r
+	muscle		glut_max1_r
+	musclegroup	group1
+	position	-0.041668 -0.022612 0.046379
+endviapoint
+
+// --------------------------------------------------------------------------------------------------------
+// Informations about glut_max2_r
+// --------------------------------------------------------------------------------------------------------
+// ---- Muscle
+muscle glut_max2_r
+	Type				hillthelen
+	statetype    		degroote
+	musclegroup			group1
+	OriginPosition		-0.15106 0.0014453 0.053739
+	InsertionPosition	-0.014224 -0.092635 0.049573
+	optimalLength		0.15051
+	maximalForce		$fiso_02
+	maxExcitation		1
+	tendonSlackLength	0.13003
+	pennationAngle		0
+endmuscle
+// ---- Via points
+viapoint glut_max2_r
+	parent		pelvis
+	muscle		glut_max2_r
+	musclegroup	group1
+	position	-0.15388 -0.075934 0.090508
+endviapoint
+viapoint glut_max2_r
+	parent		femur_r
+	muscle		glut_max2_r
+	musclegroup	group1
+	position	-0.038841 -0.048323 0.034666
+endviapoint
+
+// --------------------------------------------------------------------------------------------------------
+// Informations about glut_max3_r
+// --------------------------------------------------------------------------------------------------------
+// ---- Muscle
+muscle glut_max3_r
+	Type				hillthelen
+	statetype    		degroote
+	musclegroup			group1
+	OriginPosition		-0.17201 -0.088053 0.0077519
+	InsertionPosition	-0.0054706 -0.12938 0.048627
+	optimalLength		0.14598
+	maximalForce		$fiso_03
+	maxExcitation		1
+	tendonSlackLength	0.11556
+	pennationAngle		0.087266
+endmuscle
+// ---- Via points
+viapoint glut_max3_r
+	parent		pelvis
+	muscle		glut_max3_r
+	musclegroup	group1
+	position	-0.16991 -0.13508 0.036978
+endviapoint
+viapoint glut_max3_r
+	parent		femur_r
+	muscle		glut_max3_r
+	musclegroup	group1
+	position	-0.027262 -0.094914 0.015972
+endviapoint
+
+// --------------------------------------------------------------------------------------------------------
+// Informations about glut_med1_r
+// --------------------------------------------------------------------------------------------------------
+// ---- Muscle
+muscle glut_med1_r
+	Type				hillthelen
+	statetype    		degroote
+	musclegroup			group1
+	OriginPosition		-0.052482 0.015676 0.12141
+	InsertionPosition	-0.019876 -0.010668 0.065664
+	optimalLength		0.057916
+	maximalForce		$fiso_04
+	maxExcitation		1
+	tendonSlackLength	0.084438
+	pennationAngle		0.13963
+endmuscle
+// ---- Via points
+// no via point
+
+// --------------------------------------------------------------------------------------------------------
+// Informations about glut_med2_r
+// --------------------------------------------------------------------------------------------------------
+// ---- Muscle
+muscle glut_med2_r
+	Type				hillthelen
+	statetype   		degroote
+	musclegroup			group1
+	OriginPosition		-0.10098 0.015231 0.082966
+	InsertionPosition	-0.023523 -0.0052882 0.062351
+	optimalLength		0.094302
+	maximalForce		$fiso_05
+	maxExcitation		1
+	tendonSlackLength	0.041292
+	pennationAngle		0
+endmuscle
+// ---- Via points
+// no via point
+
+// --------------------------------------------------------------------------------------------------------
+// Informations about glut_med3_r
+// --------------------------------------------------------------------------------------------------------
+// ---- Muscle
+muscle glut_med3_r
+	Type				hillthelen
+	statetype    			degroote
+	musclegroup			group1
+	OriginPosition		-0.13786 -0.0064483 0.062643
+	InsertionPosition	-0.028174 -0.0042853 0.061287
+	optimalLength		0.072707
+	maximalForce		$fiso_06
+	maxExcitation		1
+	tendonSlackLength	0.059651
+	pennationAngle		0.33161
+endmuscle
+// ---- Via points
+// no via point
+
+// --------------------------------------------------------------------------------------------------------
+// Informations about semimem_r
+// --------------------------------------------------------------------------------------------------------
+// ---- Muscle
+muscle semimem_r
+	Type				hillthelen
+	statetype    		degroote
+	musclegroup			group2
+	OriginPosition		-0.13461 -0.13097 0.067567
+	InsertionPosition	-0.024181 -0.053338 -0.019305
+	optimalLength		0.072483
+	maximalForce		$fiso_07
+	maxExcitation		1
+	tendonSlackLength	0.32527
+	pennationAngle		0.2618
+endmuscle
+// ---- Via points
+// no via point
+
+// --------------------------------------------------------------------------------------------------------
+// Informations about semiten_r
+// --------------------------------------------------------------------------------------------------------
+// ---- Muscle
+muscle semiten_r
+	Type				hillthelen
+	statetype    		degroote
+	musclegroup			group2
+	OriginPosition		-0.13932 -0.13408 0.057929
+	InsertionPosition	0.0026868 -0.095132 -0.019206
+	optimalLength		0.18404
+	maximalForce		$fiso_08
+	maxExcitation		1
+	tendonSlackLength	0.2399
+	pennationAngle		0.087266
+endmuscle
+// ---- Via points
+viapoint semiten_r
+	parent		tibia_r
+	muscle		semiten_r
+	musclegroup	group2
+	position	-0.031246 -0.054233 -0.014529
+endviapoint
+viapoint semiten_r
+	parent		tibia_r
+	muscle		semiten_r
+	musclegroup	group2
+	position	-0.011245 -0.074235 -0.02438
+endviapoint
+
+// --------------------------------------------------------------------------------------------------------
+// Informations about bi_fem_lh_r
+// --------------------------------------------------------------------------------------------------------
+// ---- Muscle
+muscle bi_fem_lh_r
+	Type				hillthelen
+	statetype    		degroote
+	musclegroup			group2
+	OriginPosition		-0.14006 -0.12941 0.064529
+	InsertionPosition	-0.0080604 -0.072543 0.042093
+	optimalLength		0.099572
+	maximalForce		$fiso_09
+	maxExcitation		1
+	tendonSlackLength	0.31151
+	pennationAngle		0
+endmuscle
+// ---- Via points
+// no via point
+
+// --------------------------------------------------------------------------------------------------------
+// Informations about rectus_fem_r
+// --------------------------------------------------------------------------------------------------------
+// ---- Muscle
+muscle rectus_fem_r
+	Type				hillthelen
+	statetype    		degroote
+	musclegroup			group3
+	OriginPosition		-0.040645 -0.052698 0.096165
+	InsertionPosition	0.011032 0.039844 -0.00091176
+	optimalLength		0.078408
+	maximalForce		$fiso_10
+	maxExcitation		1
+	tendonSlackLength	0.32296
+	pennationAngle		0.087266
+endmuscle
+// ---- Via points
+// no via point
+
+// --------------------------------------------------------------------------------------------------------
+// Informations about vas_med_r
+// --------------------------------------------------------------------------------------------------------
+// ---- Muscle
+muscle vas_med_r
+	Type				hillthelen
+	statetype    		degroote
+	musclegroup			group9
+	OriginPosition		0.012765 -0.19138 0.022243
+	InsertionPosition	0.0057441 0.040573 -0.0155
+	optimalLength		0.083217
+	maximalForce		$fiso_11
+	maxExcitation		1
+	tendonSlackLength	0.11781
+	pennationAngle		0.087266
+endmuscle
+// ---- Via points
+viapoint vas_med_r
+	parent		femur_r
+	muscle		vas_med_r
+	musclegroup	group9
+	position	0.032459 -0.25247 0.0010648
+endviapoint
+
+// --------------------------------------------------------------------------------------------------------
+// Informations about vas_int_r
+// --------------------------------------------------------------------------------------------------------
+// ---- Muscle
+muscle vas_int_r
+	Type				hillthelen
+	statetype    			degroote
+	musclegroup			group9
+	OriginPosition		0.026441 -0.17542 0.036677
+	InsertionPosition	0.0052882 0.043765 -0.00054706
+	optimalLength		0.081289
+	maximalForce		$fiso_12
+	maxExcitation		1
+	tendonSlackLength	0.12707
+	pennationAngle		0.05236
+endmuscle
+// ---- Via points
+viapoint vas_int_r
+	parent		femur_r
+	muscle		vas_int_r
+	musclegroup	group9
+	position	0.030544 -0.19001 0.033719
+endviapoint
+
+// --------------------------------------------------------------------------------------------------------
+// Informations about vas_lat_r
+// --------------------------------------------------------------------------------------------------------
+// ---- Muscle
+muscle vas_lat_r
+	Type				hillthelen
+	statetype    			degroote
+	musclegroup			group9
+	OriginPosition		0.0043765 -0.16904 0.041292
+	InsertionPosition	0.0093912 0.038568 0.012856
+	optimalLength		0.079102
+	maximalForce		$fiso_13
+	maxExcitation		1
+	tendonSlackLength	0.14785
+	pennationAngle		0.087266
+endmuscle
+// ---- Via points
+viapoint vas_lat_r
+	parent		femur_r
+	muscle		vas_lat_r
+	musclegroup	group9
+	position	0.024526 -0.23624 0.04839
+endviapoint
+
+// --------------------------------------------------------------------------------------------------------
+// Informations about gas_med_r
+// --------------------------------------------------------------------------------------------------------
+// ---- Muscle
+muscle gas_med_r
+	Type				hillthelen
+	statetype    			degroote
+	musclegroup			group11
+	OriginPosition		-0.011579 -0.35823 -0.027804
+	InsertionPosition	0.0033495 0.03194 -0.0063202
+	optimalLength		0.044721
+	maximalForce		$fiso_14
+	maxExcitation		1
+	tendonSlackLength	0.40547
+	pennationAngle		0.29671
+endmuscle
+// ---- Via points
+viapoint gas_med_r
+	parent		tibia_r
+	muscle		gas_med_r
+	musclegroup	group11
+	position	-0.021594 -0.048462 -0.029356
+endviapoint
+
+// --------------------------------------------------------------------------------------------------------
+// Informations about gas_lat_r
+// --------------------------------------------------------------------------------------------------------
+// ---- Muscle
+muscle gas_lat_r
+	Type				hillthelen
+	statetype    			degroote
+	musclegroup			group11
+	OriginPosition		-0.014132 -0.35978 0.032181
+	InsertionPosition	0.0033495 0.03194 -0.0063202
+	optimalLength		0.06375
+	maximalForce		$fiso_15
+	maxExcitation		1
+	tendonSlackLength	0.38349
+	pennationAngle		0.13963
+endmuscle
+// ---- Via points
+viapoint gas_lat_r
+	parent		tibia_r
+	muscle		gas_lat_r
+	musclegroup	group11
+	position	-0.024082 -0.047865 0.023385
+endviapoint
+
+// --------------------------------------------------------------------------------------------------------
+// Informations about soleus_r
+// --------------------------------------------------------------------------------------------------------
+// ---- Muscle
+muscle soleus_r
+	Type				hillthelen
+	statetype    			degroote
+	musclegroup			group16
+	OriginPosition		-0.0023883 -0.15255 0.0070653
+	InsertionPosition	0.0033495 0.03194 -0.0063202
+	optimalLength		0.029856
+	maximalForce		$fiso_16
+	maxExcitation		1
+	tendonSlackLength	0.26672
+	pennationAngle		0.43633
+endmuscle
+// ---- Via points
+// no via point
+
+// --------------------------------------------------------------------------------------------------------
+// Informations about tib_ant_r
+// --------------------------------------------------------------------------------------------------------
+// ---- Muscle
+muscle tib_ant_r
+	Type				hillthelen
+	statetype    			degroote
+	musclegroup			group16
+	OriginPosition		0.017812 -0.16161 0.011444
+	InsertionPosition	0.11624 0.017744 -0.030405
+	optimalLength		0.097554
+	maximalForce		$fiso_17
+	maxExcitation		1
+	tendonSlackLength	0.22199
+	pennationAngle		0.087266
+endmuscle
+// ---- Via points
+viapoint tib_ant_r
+	parent		tibia_r
+	muscle		tib_ant_r
+	musclegroup	group16
+	position	0.032739 -0.39317 -0.017613
+endviapoint
+
+
+// --------------------------------------------------------------------------------------------------------
+// Informations about iliacus_r
+// --------------------------------------------------------------------------------------------------------
+// ---- Muscle
+muscle    iliacus_r
+    Type                  hillthelen
+    statetype             degroote
+    musclegroup           group1
+    OriginPosition       -0.075300199999999998  0.0309515            0.100937
+    InsertionPosition    -0.011687599999999999 -0.061024599999999998 0.0187768
+    optimalLength         0.11124308006189799
+    maximalForce          $fiso_18
+    tendonSlackLength     0.100307351406767
+    pennationAngle        0.27991397000000001
+endmuscle
+// ---- Via points
+viapoint    iliacus_r-P2
+    parent    pelvis
+    muscle    iliacus_r
+    musclegroup    group1
+    position    -0.016802500000000001 -0.055792899999999999 0.090520299999999998
+endviapoint
+viapoint    iliacus_r-P3
+    parent    femur_r
+    muscle         iliacus_r
+    musclegroup    group1
+    position    -0.0022033999999999999 -0.054127000000000002 0.0133162
+endviapoint
+
+
+// --------------------------------------------------------------------------------------------------------
+// Informations about psoas_r
+// --------------------------------------------------------------------------------------------------------
+muscle    psoas_r
+    Type    hillthelen
+    statetype    degroote
+    musclegroup    group1
+    OriginPosition    -0.075424699999999997 0.062103400000000003 0.046697000000000002
+    InsertionPosition    -0.022512999999999998 -0.050199199999999999 0.0084303999999999994
+    optimalLength    0.12095597858541
+    maximalForce    $fiso_19
+    tendonSlackLength    0.102996929320297
+    pennationAngle    0.21552513000000001
+endmuscle
+// ---- Via points
+viapoint    psoas_r-P2
+    parent    pelvis
+    muscle    psoas_r
+    musclegroup    group1
+    position    -0.025514999999999999 -0.065509100000000001 0.078546699999999997
+endviapoint
+viapoint    psoas_r-P3
+    parent    femur_r
+    muscle    psoas_r
+    musclegroup    group1
+    position    -0.0126456 -0.044738600000000003 0.0044067999999999998
+endviapoint

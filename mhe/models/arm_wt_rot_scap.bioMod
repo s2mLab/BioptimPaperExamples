@@ -1,0 +1,1049 @@
+version 3
+
+// 4 MARQUEURS PAR SEGMENT
+
+
+// Informations générales
+root_actuated	1
+external_forces	0
+
+// DEFINITION DES SEGMENTS
+
+// Informations about Pelvis segment
+	// Segment
+	segment	Pelvis
+		RTinMatrix	1
+		RT
+			1.0000000000	0.0000000000	0.0000000000	0.0000000000
+			0.0000000000	1.0000000000	0.0000000000	0.0000000000
+			0.0000000000	0.0000000000	1.0000000000	0.0000000000
+			0.0000000000	0.0000000000	0.0000000000	1.0000000000
+		//translations	xyz
+		//rotations	xyz
+		mass	1.00000
+		inertia
+			1.0000000000	0.0000000000	0.0000000000
+			0.0000000000	1.0000000000	0.0000000000
+			0.0000000000	0.0000000000	1.0000000000
+		com		0.0000000000		0.0000000000		0.0000000000
+	endsegment
+	
+// Thorax
+	 segment Thorax
+		parent Pelvis
+		RTinMatrix	1
+		RT
+			0.000000	0.000000	1.000000	0.000000
+			1.000000	0.000000	0.000000	0.000000
+			0.000000	1.000000	0.000000	0.000000
+			0.000000	0.000000	0.000000	1.000000
+		//translations	xyz
+		//rotations	    xyz
+		mass	46.24
+		inertia
+			5.156339	0.000000	0.000000
+			0.000000	0.989495	0.000000
+			0.000000	0.000000	5.642031
+		com	0.000000	-0.44045	0.000000
+		meshfile Geometry/thorax.vtp
+	endsegment
+
+	// Markers
+	/*marker	STER
+		parent	Thorax
+		position	0.0308371 -0.0252174 -0.00445143
+	endmarker
+	marker	STERl
+		parent	Thorax
+		position	  0.0185633 0.000897414 -0.0300689
+		technical 1
+	endmarker
+	marker	STERr
+		parent	Thorax
+		position	0.0291401 0.00418783 0.0120915
+		technical 1
+	endmarker
+	marker	XIPH
+		parent	Thorax
+		position	0.0834054 -0.230826 -0.00823584
+	endmarker*/
+	/*marker	T10
+		parent	Thorax
+		position	-0.12957 -0.237593 -0.00246707
+	endmarker*/
+
+// Spine
+	 segment Spine
+		parent	Thorax
+		RTinMatrix	1
+		RT
+			1.000000	0.000000	0.000000	0.000000
+			0.000000	1.000000	0.000000	0.000000
+			0.000000	0.000000	1.000000	0.000000
+			0.000000	0.000000	0.000000	1.000000
+		mass	0.0111087368881777
+		inertia
+			0.000111	0.000000	0.000000
+			0.000000	0.000111	0.000000
+			0.000000	0.000000	0.000111
+		com	0.000000	0.000000	0.000000
+		meshfile Geometry/hat_spine.vtp
+	endsegment
+	
+// Clavicle
+	 segment Clavicle
+		parent	Spine
+		RTinMatrix	1
+		RT
+			1.000000	0.000000	0.000000	0.006440
+			0.000000	1.000000	0.000000	0.007056
+			0.000000	0.000000	1.000000	0.025930
+			0.000000	0.000000	0.000000	1.000000
+		//rotations	    x //yx
+		//ranges -2*pi 2*pi
+		
+		mass	0.0015
+		inertia
+			0.002521	0.000000	0.000000
+			0.000000	0.002521	0.000000
+			0.000000	0.000000	0.002521
+		com	0.000000	0.000000	0.000000
+		meshfile Geometry/clavicle.vtp
+	endsegment
+	
+	// Markers
+	/*marker	CLAVm
+		parent	Clavicle
+		position	0.0210987 0.0147888 0.0597416
+		technical 1
+	endmarker
+	marker	CLAV_ant
+		parent	Clavicle
+		position	0.0132544 0.0245692 0.084108
+		technical 1
+	endmarker
+	marker	CLAV_post
+		parent	Clavicle
+		position	-0.00158904 0.0249797 0.088631
+	endmarker
+	marker	CLAV_SC
+		parent	Clavicle
+		position	0.017971 0.01041 0.0098314
+	endmarker*/
+
+	
+// Scapula
+	 segment Scapula
+		parent	Clavicle
+		RTinMatrix	1
+		RT
+			1.000000	0.000000	0.000000	-0.015177
+			0.000000	1.000000	0.000000	0.021256
+			0.000000	0.000000	1.000000	0.143546
+			0.000000	0.000000	0.000000	1.000000
+		//rotations	    z //yx
+		mass 0.0145
+		inertia
+			0.000272	0.000000	0.000000
+			0.000000	0.000272	0.000000
+			0.000000	0.000000	0.000272
+		com	0.000000	0.000000	0.000000
+		meshfile Geometry/scapula.vtp
+	endsegment
+	
+	// Markers
+	/*marker	ACRO_tip
+		parent	Scapula
+		position	-0.0235222 0.0119421 0.00857422
+	endmarker	
+	marker	SCAP_RS
+		parent	Scapula
+		position	-0.1049 -0.0096004 -0.103532
+	endmarker
+	marker	SCAP_SA
+		parent	Scapula
+		position	-0.0731894 0.0210889 -0.0894899
+	endmarker
+	marker	SCAP_IA
+		parent	Scapula
+		position	-0.131943 -0.130753 -0.0881354
+	endmarker*/
+
+	/*marker	SCAP_AA
+		parent	Scapula
+		position	-0.0536605 0.00557052 0.00425289
+		technical 1
+	endmarker
+	marker	SCAPl
+		parent	Scapula
+		position	-0.0204978312	-0.0460248643	-0.0188720005
+		technical 1
+	endmarker
+	marker	SCAPm
+		parent	Scapula
+		position	-0.101492 -0.00118456 -0.0602858
+		technical 1
+	endmarker
+	marker	SCAP_CP
+		parent	Scapula
+		position	0.0371546697	0.0084525621	-0.0264984195
+		technical 1 //0
+	endmarker*/
+
+// Arm
+	 segment Arm
+		parent	Scapula
+		RTinMatrix	0
+		RT -0.2 0.3 -0.2 zyx -0.0162235668937676 -0.0465334917069568 -0.00199722357227
+		//RT 0.4 0.575406413529 -0.2 zyx -0.0162235668937676 -0.0465334917069568 -0.00199722357227
+		rotations yxy
+		mass 2.537
+		inertia
+			0.040215	0.000000	0.000000
+			0.000000	0.006150	0.000000
+			0.000000	0.000000	0.040215
+		com	0.000000	-0.144423	0.000000
+		meshfile Geometry/humerus.vtp
+	endsegment
+	
+	// Markers
+	marker	DELT
+		parent	Arm
+		position	-0.0135567 -0.114158 0.0281827 
+		technical 1
+	endmarker
+	marker	ARMl
+		parent	Arm
+		position	-0.0130371 -0.174206 0.0184148 
+		technical 1
+	endmarker
+	/*marker	ARMm
+		parent	Arm
+		position	0.00614184 -0.101773 -0.024878 
+		technical 1
+	endmarker*/
+	/*marker	ARMp_up
+		parent	Arm
+		position	-0.0275422 -0.150226 -0.00908345 
+		technical 1
+	endmarker
+	marker	ARMp_do
+		parent	Arm
+		position	-0.0343528 -0.204248 -0.0138099 
+		technical 1
+	endmarker*/
+	marker	EPICl
+		parent	Arm
+		position	-0.00240456 -0.308306 0.0312526
+	endmarker
+	marker	EPICm
+		parent	Arm
+		position	-0.00424695 -0.308125 -0.0579509
+	endmarker
+
+// LowerArm1
+	 segment LowerArm1
+		parent	Arm
+		RTinMatrix	0
+		RT 0.5 0 0 zyx 0.0066386 -0.3160549 -0.0133869 
+		rotations	    z
+		ranges -2*pi 2*pi
+		mass 0.98205
+		inertia
+			0.008360	0.000000	0.000000
+			0.000000	0.000943	0.000000
+			0.000000	0.000000	0.008495
+		com	0.000000	-0.114073	0.000000
+		meshfile Geometry/ulna.vtp
+	endsegment
+	
+	// Markers
+	/*marker	LARMm
+		parent	LowerArm1
+		position	0.0180443 -0.0560943 0.0197766 
+		technical 1
+	endmarker*/
+	marker	LARMl
+		parent	LowerArm1
+		position	-0.0307895 -0.0769609 0.0130237 
+		technical 1
+	endmarker
+	marker	LARM_elb
+		parent	LowerArm1
+		position	-0.0417853 0.00171698 -0.00175961 
+		technical 1
+	endmarker
+	/*marker	LARM_ant
+		parent	LowerArm1
+		position	0.0019484 -0.119207 0.0453081 
+		technical 1
+	endmarker*/
+	
+// LowerArm2
+	 segment LowerArm2
+		parent	LowerArm1
+		RTinMatrix	1
+		RT
+			1.000000	0.000000	0.000000	0.000403 
+			0.000000	1.000000	0.000000	-0.011572
+			0.000000	0.000000	1.000000	0.020117
+			0.000000	0.000000	0.000000	1.000000
+		//rotations	    y
+		mass 0.01099
+		inertia
+			0.000203	0.000000	0.000000
+			0.000000	0.000203	0.000000
+			0.000000	0.000000	0.000203
+		com	0.000000	0.000000	0.000000
+		meshfile Geometry/radius.vtp
+	endsegment
+	
+	// Markers
+	marker	STYLr
+		parent	LowerArm2
+		position	0.0601224 -0.243211 0.0307071
+	endmarker
+	/*marker	STYLr_up
+		parent	LowerArm2
+		position	-0.00585193 -0.181298 0.0475308 
+		technical 1
+	endmarker	*/
+	marker	STYLu
+		parent	LowerArm1
+		position	-0.0147894 -0.251196 0.033142
+	endmarker
+	/*marker	WRIST
+		parent	LowerArm2
+		position	0.0346357 -0.173234 0.0296425 
+		technical 1
+	endmarker*/
+
+// HAND 
+	 segment hand
+		parent	LowerArm2
+		RTinMatrix	1
+		RT
+			1.000000	0.000000	0.000000	0.020538
+			0.000000	1.000000	0.000000	-0.271953
+			0.000000	0.000000	1.000000	0.035220
+			0.000000	0.000000	0.000000	1.000000
+		//rotations	    x //y
+		mass 0.20378
+		inertia
+			0.000580	0.000000	0.000000
+			0.000000	0.000355	0.000000
+			0.000000	0.000000	0.000871
+		com	0.000000	-0.068095	0.000000
+	endsegment
+
+	// Markers
+	/*marker	INDEX
+		parent	hand
+		position	0.0189224 -0.0778131 0.023632
+	endmarker
+	marker	LASTC
+		parent	hand
+		position	-0.0243663 -0.0768699 0.00692464
+	endmarker
+	marker	MEDH
+		parent	hand
+		position	-0.0154137 -0.0350808 0.011145
+	endmarker
+	marker	LATH
+		parent	hand
+		position	0.00833888 -0.0343415 0.0171933
+	endmarker*/
+
+
+// DEFINITION DES MUSCLES
+
+// Arm > Thorax
+musclegroup Arm2Thorax
+	OriginParent		Arm
+	InsertionParent		Thorax
+endmusclegroup 	
+
+	muscle	Pectoral2
+		Type 				hill
+		statetype			degroote
+		musclegroup 		Arm2Thorax
+		OriginPosition		0.014 -0.047 0.009
+		InsertionPosition	0.032 -0.052 0.026
+		optimalLength		0.138
+		maximalForce		515.41 
+		tendonSlackLength 	0.089
+		pennationAngle		0.43633
+		PCSA			3.7
+		maxVelocity 		10
+	endmuscle
+	
+		viapoint via1
+			  parent 		Thorax
+			  muscle 		Pectoral2
+			  musclegroup 	Arm2Thorax
+			  position 		0.0205486 -0.041 0.126
+		endviapoint
+		viapoint via2
+			  parent 		Thorax
+			  muscle 		Pectoral2
+			  musclegroup 	Arm2Thorax
+			  position 		0.035 -0.045 0.111
+		endviapoint
+		
+	muscle	Pectoral3
+		Type 				hill
+		statetype			degroote
+		musclegroup 		Arm2Thorax
+		OriginPosition		0.0138111 -0.047615 0.00816258
+		InsertionPosition	0.066 -0.134 0.043
+		optimalLength		0.138
+		maximalForce		390.55
+		tendonSlackLength 	0.132
+		pennationAngle		0.436
+		PCSA				2.8
+		maxVelocity 		10
+	endmuscle
+	
+		viapoint via1
+			  parent 		Thorax
+			  muscle 		Pectoral3
+			  musclegroup 	Arm2Thorax
+			  position 		0.0299733 -0.0808133 0.121
+		endviapoint
+		viapoint via2
+			  parent 		Thorax
+			  muscle 		Pectoral3
+			  musclegroup 	Arm2Thorax
+			  position 		0.0513623 -0.099 0.097
+		endviapoint
+		
+	muscle	Latissimus1
+		Type 				hill
+		statetype			degroote
+		musclegroup 		Arm2Thorax
+		OriginPosition		0.0114277 -0.037167 -0.00710689
+		InsertionPosition	-0.112498 -0.137704 0.0103595
+		optimalLength		0.254
+		maximalForce		389.1
+		tendonSlackLength 	0.12
+		pennationAngle		0.43633
+		PCSA			2.8
+		maxVelocity 		10
+	endmuscle
+	
+		viapoint via1
+			  parent 		Arm
+			  muscle 		Latissimus1
+			  musclegroup 	Arm2Thorax
+			  position 		-0.00690019 -0.0286179 -0.00995472
+		endviapoint
+		viapoint via2
+			  parent 		Scapula
+			  muscle 		Latissimus1
+			  musclegroup 	Arm2Thorax
+			  position 		-0.071955 -0.0776953 -0.0198109
+		endviapoint
+		viapoint via3
+			  parent 		Scapula
+			  muscle 		Latissimus1
+			  musclegroup 	Arm2Thorax
+			  position 		-0.115 -0.099 -0.0568303
+		endviapoint
+		viapoint via4
+			  parent 		Thorax
+			  muscle 		Latissimus1
+			  musclegroup 	Arm2Thorax
+			  position 		-0.150553 -0.122896 0.0652761
+		endviapoint
+
+	muscle	Latissimus2
+		Type 				hill
+		statetype			degroote
+		musclegroup 		Arm2Thorax
+		OriginPosition		0.011 -0.045 -0.007
+		InsertionPosition	-0.082 -0.216 0.009
+		optimalLength		0.232
+		maximalForce		389.1
+		tendonSlackLength 	0.1771
+		pennationAngle		0.3316
+		PCSA			2.8
+		maxVelocity 		10
+	endmuscle
+	
+		viapoint via1
+			  parent 		Arm
+			  muscle 		Latissimus2
+			  musclegroup 	Arm2Thorax
+			  position 		-0.010817 -0.0501153 -0.00816953
+		endviapoint
+		viapoint via2
+			  parent 		Thorax
+			  muscle 		Latissimus2
+			  musclegroup 	Arm2Thorax
+			  position 		-0.122355 -0.0925476 0.174849
+		endviapoint
+		viapoint via3
+			  parent 		Thorax
+			  muscle 		Latissimus2
+			  musclegroup 	Arm2Thorax
+			  position 		-0.144614 -0.148528 0.10115
+		endviapoint
+		viapoint via4
+			  parent 		Thorax
+			  muscle 		Latissimus2
+			  musclegroup 	Arm2Thorax
+			  position 		-0.123 -0.198306 0.0360016
+		endviapoint	
+
+	muscle	Latissimus3
+		Type 				hill
+		statetype			degroote
+		musclegroup 		Arm2Thorax
+		OriginPosition		0.0131472 -0.0426849 -0.00452752
+		InsertionPosition	-0.0864854 -0.273044 0.0108791
+		optimalLength		0.279
+		maximalForce		281.66
+		tendonSlackLength 	0.14
+		pennationAngle		0.3665
+		PCSA			2.0
+		maxVelocity 		10
+	endmuscle
+	
+		viapoint via1
+			  parent 		Arm
+			  muscle 		Latissimus3
+			  musclegroup 	Arm2Thorax
+			  position 		-0.00579625 -0.044483 -0.00893429
+		endviapoint
+		viapoint via2
+			  parent 		Thorax
+			  muscle 		Latissimus3
+			  musclegroup 	Arm2Thorax
+			  position 		-0.112692 -0.112625 0.167407
+		endviapoint
+		viapoint via3
+			  parent 		Thorax
+			  muscle 		Latissimus3
+			  musclegroup 	Arm2Thorax
+			  position 		-0.114675 -0.134411 0.157708
+		endviapoint
+		viapoint via4
+			  parent 		Thorax
+			  muscle 		Latissimus3
+			  musclegroup 	Arm2Thorax
+			  position 		-0.11751 -0.182149 0.127499
+		endviapoint		
+		viapoint via5
+			  parent 		Thorax
+			  muscle 		Latissimus3
+			  musclegroup 	Arm2Thorax
+			  position 		-0.129256 -0.231563 0.069728
+		endviapoint
+
+
+// Scapula > Arm 
+musclegroup Scapula2Arm
+	OriginParent		Scapula
+	InsertionParent		Arm
+endmusclegroup 	
+		
+	muscle	Deltoid3
+		Type 				hill
+		statetype			degroote
+		musclegroup 		Scapula2Arm
+		OriginPosition		-0.0752687 -0.00105942 -0.0527559
+		InsertionPosition	-0.00422917 -0.0789181 0.00161486
+		optimalLength		0.137
+		maximalForce		259.9
+		tendonSlackLength 	0.038
+		pennationAngle		0.31415
+		PCSA			1.9
+		maxVelocity 		10
+	endmuscle
+
+		viapoint via1
+			  parent 		Scapula
+			  muscle 		Deltoid3
+			  musclegroup 	Scapula2Arm
+			  position 		-0.0835543 -0.0385691 -0.0272127
+		endviapoint
+
+
+// Scapula > LowerArm1
+musclegroup Scapula2LowerArm1
+	OriginParent		Scapula
+	InsertionParent		LowerArm1
+endmusclegroup 
+
+	muscle	TricepsLong
+		Type 			hill
+		statetype		degroote
+		musclegroup 		Scapula2LowerArm1
+		OriginPosition		-0.0443929 -0.0563498 -0.0134528
+		InsertionPosition	-0.0220302 0.0105221 -0.000784636
+		optimalLength		0.134
+		maximalForce		798.52
+		tendonSlackLength 	0.143
+		pennationAngle		0.2094
+		PCSA			5.7
+		maxVelocity 		10
+	endmuscle
+	
+		viapoint via1
+			  parent 		Arm
+			  muscle 		TricepsLong
+			  musclegroup 	Scapula2LowerArm1
+			  position 		-0.0205478 -0.265947 -0.00912031
+		endviapoint
+		viapoint via2
+			  parent 		Arm
+			  muscle 		TricepsLong
+			  musclegroup 	Scapula2LowerArm1
+			  position 		-0.0189698 -0.291207 -0.0131472
+		endviapoint
+
+
+// Arm > LowerArm1
+musclegroup Arm2LowerArm1
+	OriginParent		Arm
+	InsertionParent		LowerArm1
+endmusclegroup  	
+
+
+	muscle	TricepsLat
+		Type 			hill
+		statetype		degroote
+		musclegroup 		Arm2LowerArm1
+		OriginPosition		-0.00651919 -0.137632 0.00465811
+		InsertionPosition	-0.0220302 0.0105221 -0.000784636
+		optimalLength		0.114
+		maximalForce		624.3
+		tendonSlackLength 	0.098
+		pennationAngle		0.1700
+		PCSA			4.5
+		maxVelocity 		10
+	endmuscle
+	
+		viapoint via1
+			  parent 		Arm
+			  muscle 		TricepsLat
+			  musclegroup 	Arm2LowerArm1
+			  position 		-0.0265773 -0.271281 -0.0114385
+		endviapoint	
+		
+	muscle	TricepsMed
+		Type 			hill
+		statetype		degroote
+		musclegroup 		Arm2LowerArm1
+		OriginPosition		-0.00912031 -0.149048 -0.00986038
+		InsertionPosition	-0.0220302 0.0105221 -0.000784636
+		optimalLength		0.114
+		maximalForce		624.3
+		tendonSlackLength 	0.091
+		pennationAngle		0.1570
+		PCSA			4.5
+		maxVelocity 		10
+	endmuscle
+	
+		viapoint via1
+			  parent 		Arm
+			  muscle 		TricepsMed
+			  musclegroup 	Arm2LowerArm1
+			  position 		-0.0346529 -0.246369 -0.0132452
+		endviapoint		
+		viapoint via2
+			  parent 		Arm
+			  muscle 		TricepsMed
+			  musclegroup 	Arm2LowerArm1
+			  position 		-0.0189698 -0.291207 -0.0131472
+		endviapoint
+
+	muscle    BRA
+            Type    hillthelen
+            statetype    degroote
+            musclegroup   Arm2LowerArm1
+            OriginPosition     0.0068 -0.1739 -0.0036
+            InsertionPosition     -0.0032 -0.0239 0.0009
+            optimalLength    0.0858
+            maximalForce    987.26
+            tendonSlackLength    0.0535
+            pennationAngle    0
+            PCSA			7.1
+            maxVelocity    10
+    endmuscle
+	
+
+//Arm > LowerArm2
+musclegroup Arm2LowerArm2
+	OriginParent		Arm
+	InsertionParent		LowerArm2
+endmusclegroup 
+
+	muscle	BRD
+		Type 			hill
+		statetype		degroote
+		musclegroup 		Arm2LowerArm2
+		OriginPosition		0.006 -0.191 0.001
+		InsertionPosition	0.053 -0.254 0.027
+		optimalLength		0.1726
+		maximalForce		261.3
+		tendonSlackLength 	0.133
+		pennationAngle		0
+		PCSA			1.9
+		maxVelocity 		10
+	endmuscle
+
+		viapoint via1
+			  parent 		Arm
+			  muscle 		BRD
+			  musclegroup 	Arm2LowerArm2
+			  position 		0.01 -0.289 0.007
+		endviapoint
+
+		viapoint via1
+			  parent 		LowerArm2
+			  muscle 		BRD
+			  musclegroup 	Arm2LowerArm2
+			  position 		0.017 -0.036 0.012
+		endviapoint
+
+		viapoint via1
+			  parent 		LowerArm2
+			  muscle 		BRD
+			  musclegroup 	Arm2LowerArm2
+			  position 		0.044 -0.158 0.024
+		endviapoint
+
+// Arm > Clavicle
+musclegroup Arm2Clavicle
+	OriginParent		Arm
+	InsertionParent		Clavicle
+endmusclegroup 	
+
+	muscle	Pectoral1
+		Type 				hill
+		statetype			degroote
+		musclegroup 		Arm2Clavicle
+		OriginPosition		0.0127226 -0.0456125 0.00848908
+		InsertionPosition	0.0033997 0.00601284 0.0695285
+		optimalLength		0.144
+		maximalForce		364.41
+		tendonSlackLength 	0.003
+		pennationAngle		0.29670
+		PCSA			2.6
+		maxVelocity 		10
+	endmuscle
+	
+	muscle	Deltoid1
+		Type 				hill
+		statetype			degroote
+		musclegroup 		Arm2Clavicle
+		OriginPosition		0.00455911 -0.103949 0.00775516
+		InsertionPosition	-0.0241685 0.0192842 0.099015
+		optimalLength		0.098
+		maximalForce		1142.6
+		tendonSlackLength 	0.093
+		pennationAngle		0.38397
+		PCSA			    8.2
+		maxVelocity 		10
+	endmuscle
+
+		viapoint via1
+			  parent 		Clavicle
+			  muscle 		Deltoid1
+			  musclegroup 	Arm2Clavicle
+			  position 		-0.00230674 0.0315051 0.130618
+		endviapoint
+
+// Arm > Scapula
+musclegroup Arm2Scapula
+	OriginParent		Arm
+	InsertionParent		Scapula
+endmusclegroup 	
+
+	muscle	Deltoid2
+		Type 				hill
+		statetype			degroote
+		musclegroup 		Arm2Scapula
+		OriginPosition		-0.005 -0.159 0.005
+		InsertionPosition	-0.01 0.001 -0.001
+		optimalLength		0.108
+		maximalForce		1142.6
+		tendonSlackLength 	0.11
+		pennationAngle		0.26179
+		PCSA			8.2
+		maxVelocity 		10
+	endmuscle
+
+		viapoint via1
+			  parent 		Arm
+			  muscle 		Deltoid2
+			  musclegroup 	Arm2Scapula
+			  position 		-0.01 -0.084 0.014 //-0.01 -0.084 0.014
+		endviapoint
+
+		viapoint via2
+			  parent 		Arm
+			  muscle 		Deltoid2
+			  musclegroup 	Arm2Scapula
+			  position 		-0.01 0.015 0.038 //-0.02 0.01 0.029
+		endviapoint
+
+		
+	muscle	SupraSpin
+		Type 				hill
+		statetype			degroote
+		musclegroup 		Arm2Scapula
+		OriginPosition		0.0035553500000000001 0.031139799999999999 0.0055013299999999996
+		InsertionPosition	-0.076967999999999995 -0.0133058 -0.074049000000000004
+		optimalLength		0.068
+		maximalForce		487.7
+		tendonSlackLength 	0.04
+		pennationAngle		0.12217
+		PCSA			3.5
+		maxVelocity 		10
+	endmuscle
+	/*viapoint via1
+			  parent 		Arm
+			  muscle 		SupraSpin
+			  musclegroup 	Arm2Scapula
+			  position 		0.0035658 0.0312313 0.0055175
+		endviapoint*/
+		viapoint via2
+			  parent 		Scapula
+			  muscle 		SupraSpin
+			  musclegroup 	Arm2Scapula
+			  position	-0.064499500000000001 -0.0015351 -0.046731799999999997
+		endviapoint
+		
+	muscle	InfraSpin
+		Type 				hill
+		statetype			degroote
+		musclegroup 		Arm2Scapula
+		OriginPosition		-0.0116528 -0.00158952 0.027548
+		InsertionPosition	-0.0884006 -0.0650538 -0.055069
+	z	optimalLength		0.076
+		maximalForce		1210.8
+		tendonSlackLength 	0.031
+		pennationAngle		0.32288
+		PCSA			8.6
+		maxVelocity 		10
+	endmuscle
+
+		viapoint via1
+			  parent 		Scapula
+			  muscle 		InfraSpin
+			  musclegroup 	Arm2Scapula
+			  position	-0.0426639 -0.0484855 -0.0219049
+		endviapoint
+		
+	muscle	SubScap
+		Type 			hill
+		statetype		degroote
+		musclegroup 		Arm2Scapula
+		OriginPosition		0.0199995 -0.00831173 -0.00174873
+		InsertionPosition	-0.072 -0.039 -0.065
+		optimalLength		0.087
+		maximalForce		1377.8
+		tendonSlackLength 	0.033
+		pennationAngle		0.34906
+		PCSA			9.8
+		maxVelocity 		10
+	endmuscle
+
+		viapoint via1
+			  parent 		Arm
+			  muscle 		SubScap
+			  musclegroup 	Arm2Scapula
+			  position	0.0074096500000000003 0.0103442 -0.022619
+		endviapoint
+		
+		viapoint via2
+			  parent 		Scapula
+			  muscle 		SubScap
+			  musclegroup 	Arm2Scapula
+			  position	-0.0391088 -0.032288 -0.0333714
+		endviapoint
+
+// Scapula > LowerArm2
+musclegroup Scapula2LowerArm2
+	OriginParent		Scapula
+	InsertionParent		LowerArm2
+endmusclegroup 	
+
+	muscle	BicepsLong
+		Type 				hill
+		statetype			degroote
+		musclegroup 		Scapula2LowerArm2
+		OriginPosition		-0.0353942 -0.0266676 -0.0147901
+		InsertionPosition	-0.00224779 -0.0421462 -0.00224779
+		optimalLength		0.1165
+		maximalForce		624.3
+		tendonSlackLength 	0.272
+		pennationAngle		0
+		PCSA			4.5
+		maxVelocity 		10
+	endmuscle
+
+		viapoint via1
+			  parent 		Arm
+			  muscle 		BicepsLong
+			  musclegroup 	Scapula2LowerArm2
+			  position 		0.0116344 0.029984 -0.00269909
+		endviapoint
+		viapoint via2
+			  parent 		Arm
+			  muscle 		BicepsLong
+			  musclegroup 	Scapula2LowerArm2
+			  position 		0.0223001 0.0185563 0.000391803
+		endviapoint
+		viapoint via3
+			  parent 		Arm
+			  muscle 		BicepsLong
+			  musclegroup 	Scapula2LowerArm2
+			  position 		0.0298861 2.17669e-005 0.000163252
+		endviapoint
+		viapoint via4
+			  parent 		Arm
+			  muscle 		BicepsLong
+			  musclegroup 	Scapula2LowerArm2
+			  position 		0.0135063 -0.0414441 -0.00487578
+		endviapoint
+		viapoint via5
+			  parent 		Arm
+			  muscle 		BicepsLong
+			  musclegroup 	Scapula2LowerArm2
+			  position 		0.0125704 -0.0845642 -0.00259025
+		endviapoint
+		viapoint via6
+			  parent 		Arm
+			  muscle 		BicepsLong
+			  musclegroup 	Scapula2LowerArm2
+			  position 		0.0185344 -0.131961 0.000261203
+		endviapoint
+		viapoint via7
+			  parent 		Arm
+			  muscle 		BicepsLong
+			  musclegroup 	Scapula2LowerArm2
+			  position 		0.0248144 -0.190894 -0.00685657
+		endviapoint
+		viapoint via8
+			  parent 		Arm
+			  muscle 		BicepsLong
+			  musclegroup 	Scapula2LowerArm2
+			  position 		0.023585 -0.294299 -0.0112797
+		endviapoint
+
+
+	muscle	BicepsShort
+		Type 				hill
+		statetype			degroote
+		musclegroup 		Scapula2LowerArm2
+		OriginPosition		0.0143708 -0.0445517 -0.0297503
+		InsertionPosition	-0.00224779 -0.0421462 -0.00224779
+		optimalLength		0.132
+		maximalForce		435.6
+		tendonSlackLength 	0.192
+		pennationAngle		0
+		PCSA			3.1
+		maxVelocity 		10
+	endmuscle
+
+		viapoint via1
+			  parent 		Arm
+			  muscle 		BicepsShort
+			  musclegroup 	Scapula2LowerArm2
+			  position 		0.0121567 -0.0824529 -0.0119826
+		endviapoint
+		viapoint via2
+			  parent 		Arm
+			  muscle 		BicepsShort
+			  musclegroup 	Scapula2LowerArm2
+			  position 		0.0185344 -0.131961 -0.0117432
+		endviapoint
+		viapoint via3
+			  parent 		Arm
+			  muscle 		BicepsShort
+			  musclegroup 	Scapula2LowerArm2
+			  position 		0.0248144 -0.190894 -0.00685657
+		endviapoint
+		viapoint via4
+			  parent 		Arm
+			  muscle 		BicepsShort
+			  musclegroup 	Scapula2LowerArm2
+			  position 		0.0184577 -0.292248 -0.00615258
+		endviapoint
+
+/*// thorax > scapula
+musclegroup thorax_to_scapula
+    OriginParent        Thorax
+    InsertionParent        Scapula
+endmusclegroup
+    muscle    TRP1
+        Type    hill
+        statetype    degroote
+        musclegroup    thorax_to_scapula
+        OriginPosition    -0.091626255825670466 0.042758919385312892 0.0061084170550446985
+        InsertionPosition    -0.045235227287209259 0.0011904007180844542 -0.013094407898928996
+        optimalLength    0.20166040600598678
+        maximalForce    280.56713981164
+        tendonSlackLength    0.0034970012602194241
+        pennationAngle    0
+    endmuscle
+
+        viapoint    TRP1-P2
+            parent    Thorax
+            muscle    TRP1
+            musclegroup    thorax_to_scapula
+            position    -0.13316349179997441 0.03420713550825031 0.040315552563295012
+        endviapoint
+
+    muscle    TRP2
+        Type    hill
+        statetype    degroote
+        musclegroup    thorax_to_scapula
+        OriginPosition    -0.10628645675777774 0.013438517521098335 0.0073301004660536375
+        InsertionPosition    -0.072614443803151713 0.0011904007180844542 -0.024998415079773541
+        optimalLength    0.18459028353756379
+        maximalForce    168
+        tendonSlackLength    0.028570343248170701
+        pennationAngle    0
+    endmuscle
+
+        viapoint    TRP2-P2
+            parent    Thorax
+            muscle    TRP2
+            musclegroup    thorax_to_scapula
+            position    -0.15759716002015323 0.012216834110089397 0.085517838770625784
+        endviapoint
+
+// thorax > clavicle  
+musclegroup thorax_to_clavicle
+    OriginParent       Thorax
+    InsertionParent        Clavicle
+endmusclegroup
+
+    muscle    TRP3
+        Type    hill
+        statetype    degroote
+        musclegroup    thorax_to_clavicle
+        OriginPosition    -0.053754070084393341 0.14782369273208168 0.023211984809169851
+        InsertionPosition    -0.030420141390465217 0.030420141390465217 0.12506058127191258
+        optimalLength    0.091867350482782495
+        maximalForce    155.28316683500699
+        tendonSlackLength    0.052529279891437172
+        pennationAngle    0
+    endmuscle
+
+
+    muscle    TRP4
+        Type    hill
+        statetype    degroote
+        musclegroup    thorax_to_clavicle
+        OriginPosition    -0.061966954684281005 0.089007080364694527 0.0056333595167528186
+        InsertionPosition    -0.02687703504219667 0.030542085275223493 0.15515379319813533
+        optimalLength    0.11297328164496093
+        maximalForce    557.24345537557701
+        tendonSlackLength    0.046378505096352378
+        pennationAngle    0
+    endmuscle */

@@ -25,7 +25,7 @@ Please note that the Ipopt solver used is `ma57` that must be manually downloade
 
 # Running the examples
 
-Once everything is properly installed, to generate the table of the paper, you can run the `table_generation.py` script. You can also explore each individual optimal control problems by having a look a `main.py` in each folder. 
+Once everything is properly installed, to generate the table of the paper (except for `gait` which is skipped because it can be a bit RAM extensive!), you can run the `table_generation.py` script. You can also explore each individual optimal control problems by having a look a `main.py` in each folder. 
 
 Please note that the `generate_table.py` files use `ma57`, while `main.py` files use `mumps`, that is so one which does not have `ma57` still can run the examples.
 

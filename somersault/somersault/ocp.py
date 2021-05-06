@@ -16,7 +16,7 @@ from bioptim import (
     DynamicsList,
     BoundsList,
     OdeSolver,
-    PenaltyNodes,
+    PenaltyNode,
 )
 
 
@@ -352,7 +352,7 @@ def prepare_ocp_quaternion(biorbd_model_path, final_time, n_shooting):
     )
 
 
-def max_twist_quaternion(pn: PenaltyNodes, states_to_euler_rate_func) -> cas.MX:
+def max_twist_quaternion(pn: PenaltyNode, states_to_euler_rate_func) -> cas.MX:
     val = []
     for i in range(pn.nlp.ns):
         val = cas.vertcat(val, states_to_euler_rate_func(pn.x[i])[-1])
@@ -367,7 +367,7 @@ def states_to_euler(states):
     return cas.Function("states_to_euler", [states], [euler])
 
 
-def final_position_quaternion(pn: PenaltyNodes, states_to_euler_func) -> cas.MX:
+def final_position_quaternion(pn: PenaltyNode, states_to_euler_func) -> cas.MX:
     val = states_to_euler_func(pn.x[0])[0]
     return val
 

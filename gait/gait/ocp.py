@@ -16,12 +16,12 @@ from bioptim import (
     ConstraintFcn,
     PhaseTransitionList,
     PhaseTransitionFcn,
-    PenaltyNodes,
+    PenaltyNode,
 )
 
 
 # --- force nul at last point ---
-def get_last_contact_force_null(pn: PenaltyNodes, contact_name: str) -> MX:
+def get_last_contact_force_null(pn: PenaltyNode, contact_name: str) -> MX:
     """
     Adds the constraint that the force at the specific contact point should be null
     at the last phase point.
@@ -29,7 +29,7 @@ def get_last_contact_force_null(pn: PenaltyNodes, contact_name: str) -> MX:
 
     Parameters
     ----------
-    pn: PenaltyNodes
+    pn: PenaltyNode
         The penalty node elements
     contact_name: str
         Name of the contacts that sould be null at the last node
@@ -39,8 +39,11 @@ def get_last_contact_force_null(pn: PenaltyNodes, contact_name: str) -> MX:
     The value that should be constrained in the MX format
 
     """
+    if pn.u is None:
+        force = pn.nlp.contact_forces_func(pn.x[-1], MX.zeros(0, 0), pn.p)
+    else:
+        force = pn.nlp.contact_forces_func(pn.x[-1], pn.u[-1], pn.p)
 
-    force = pn.nlp.contact_forces_func(pn.x[-1], pn.u[-1], pn.p)
     if contact_name == "all":
         val = force
     else:
@@ -58,14 +61,14 @@ def get_last_contact_force_null(pn: PenaltyNodes, contact_name: str) -> MX:
 
 
 # --- track grf ---
-def track_sum_contact_forces(pn: PenaltyNodes, grf: np.ndarray) -> MX:
+def track_sum_contact_forces(pn: PenaltyNode, grf: np.ndarray) -> MX:
     """
     Adds the objective that the mismatch between the
     sum of the contact forces and the reference ground reaction forces should be minimized.
 
     Parameters
     ----------
-    pn: PenaltyNodes
+    pn: PenaltyNode
         The penalty node elements
     grf: np.ndarray
         Array of the measured ground reaction forces
@@ -102,7 +105,11 @@ def track_sum_contact_forces(pn: PenaltyNodes, grf: np.ndarray) -> MX:
         for f in forces:
             forces[f].append(0.0)  # init: put 0 if the contact point is not activated
 
-        force = pn.nlp.contact_forces_func(pn.x[n], pn.u[n], pn.p)  # compute force
+        if pn.u is None:
+            force = pn.nlp.contact_forces_func(pn.x[n], MX.zeros(0,0), pn.p)  # compute force
+        else:
+            force = pn.nlp.contact_forces_func(pn.x[n], pn.u[n], pn.p)  # compute force
+
         for i, c in enumerate(cn):
             if c.to_string() in forces:  # check if contact point is activated
                 forces[c.to_string()][n] = force[i]  # put corresponding forces in dictionnary
@@ -110,31 +117,31 @@ def track_sum_contact_forces(pn: PenaltyNodes, grf: np.ndarray) -> MX:
         # --- tracking forces ---
         val = vertcat(
             val,
-            grf[0, pn.t[n]]
+            grf[0, pn.t]
             - (forces["Heel_r_X"][n] + forces["Meta_1_r_X"][n] + forces["Meta_5_r_X"][n] + forces["Toe_r_X"][n]),
         )
         val = vertcat(
             val,
-            grf[1, pn.t[n]]
+            grf[1, pn.t]
             - (forces["Heel_r_Y"][n] + forces["Meta_1_r_Y"][n] + forces["Meta_5_r_Y"][n] + forces["Toe_r_Y"][n]),
         )
         val = vertcat(
             val,
-            grf[2, pn.t[n]]
+            grf[2, pn.t]
             - (forces["Heel_r_Z"][n] + forces["Meta_1_r_Z"][n] + forces["Meta_5_r_Z"][n] + forces["Toe_r_Z"][n]),
         )
     return val
 
 
 # --- track moments ---
-def track_sum_contact_moments(pn: PenaltyNodes, CoP: np.ndarray, M_ref: np.ndarray) -> MX:
+def track_sum_contact_moments(pn: PenaltyNode, CoP: np.ndarray, M_ref: np.ndarray) -> MX:
     """
     Adds the objective that the mismatch between the
     sum of the contact moments and the reference ground reaction moments should be minimized.
 
     Parameters
     ----------
-    pn: PenaltyNodes
+    pn: PenaltyNode
         The penalty node elements
     CoP: np.ndarray
         Array of the measured center of pressure trajectory

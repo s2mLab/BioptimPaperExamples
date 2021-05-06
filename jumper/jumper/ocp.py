@@ -2,7 +2,7 @@ import numpy as np
 from casadi import if_else, lt, vertcat
 import biorbd
 from bioptim import (
-    PenaltyNodes,
+    PenaltyNode,
     Node,
     ConstraintList,
     ConstraintFcn,
@@ -22,7 +22,7 @@ from bioptim import (
 )
 
 
-def maximal_tau(nodes: PenaltyNodes, minimal_tau):
+def maximal_tau(nodes: PenaltyNode, minimal_tau):
     nlp = nodes.nlp
     nq = nlp.mapping["q"].to_first.len
     q = [nlp.mapping["q"].to_second.map(mx[:nq]) for mx in nodes.x]
@@ -51,7 +51,7 @@ def maximal_tau(nodes: PenaltyNodes, minimal_tau):
     )
 
 
-def com_dot_z(nodes: PenaltyNodes):
+def com_dot_z(nodes: PenaltyNode):
     nlp = nodes.nlp
     x = nodes.x
     q = nlp.mapping["q"].to_second.map(x[0][: nlp.shape["q"]])
@@ -61,7 +61,7 @@ def com_dot_z(nodes: PenaltyNodes):
     return com_dot[2]
 
 
-def toe_on_floor(nodes: PenaltyNodes):
+def toe_on_floor(nodes: PenaltyNode):
     nlp = nodes.nlp
     nb_q = nlp.shape["q"]
     q_reduced = nodes.x[0][:nb_q]
@@ -71,7 +71,7 @@ def toe_on_floor(nodes: PenaltyNodes):
     return toe_marker_z + 0.779  # floor = -0.77865438
 
 
-def heel_on_floor(nodes: PenaltyNodes):
+def heel_on_floor(nodes: PenaltyNode):
     nlp = nodes.nlp
     nb_q = nlp.shape["q"]
     q_reduced = nodes.x[0][:nb_q]

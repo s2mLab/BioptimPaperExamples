@@ -207,6 +207,7 @@ def prepare_ocp(biorbd_model: biorbd.Model, final_time: float, n_shooting: int):
         u_bounds,
         objective_functions,
         use_sx=True,
+        n_threads=8,
     )
 
 

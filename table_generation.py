@@ -112,18 +112,18 @@ class TableOCP:
 
 table = TableOCP()
 
-# table.add("gait")
-# table.add("jumper")
+table.add("gait")
+table.add("jumper")
 table.add("mhe")
 table.add("pendulum")
 table.add("pointing")
-# table.add("somersault")
+table.add("somersault")
 
-# gait_table(table["gait"])
-# jumper_table(table["jumper"])
+gait_table(table["gait"])
+jumper_table(table["jumper"])
 mhe_table(table["mhe"])
 pendulum_table(table["pendulum"])
 pointing_table(table["pointing"])
-# somersault_table(table["somersault"])
+somersault_table(table["somersault"])
 
 table.print()

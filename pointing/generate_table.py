@@ -15,7 +15,7 @@ def generate_table(out):
     use_ipopt = True
     weights = np.array([100, 1, 1, 100000])
     ocp = prepare_ocp(biorbd_model=biorbd_model_ip, final_time=2, n_shooting=50, use_sx=not use_ipopt, weights=weights)
-    opts = {"linear_solver": "ma57", "hessian_approximation": "exact"}
+    opts = {"linear_solver": "ma57", "hessian_approximation": "exact",  "print_level": 0}
     solver = Solver.IPOPT
 
     # --- Solve the program --- #
@@ -40,7 +40,8 @@ def generate_table(out):
     use_ipopt = False
     biorbd_model_ac = biorbd.Model(model_path)
     ocp = prepare_ocp(biorbd_model=biorbd_model_ac, final_time=2, n_shooting=50, use_sx=not use_ipopt, weights=weights)
-    opts = {"sim_method_num_steps": 5, "tol": 1e-8, "integrator_type": "ERK", "hessian_approx": "GAUSS_NEWTON"}
+    opts = {"sim_method_num_steps": 5, "tol": 1e-8, "integrator_type": "ERK",
+            "hessian_approx": "GAUSS_NEWTON",  "print_level": 0}
     solver = Solver.ACADOS
 
     # --- Solve the program --- #

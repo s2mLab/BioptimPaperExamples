@@ -171,14 +171,16 @@ class Jumper5Phases:
     def _set_constraints(self):
         # Torque constrained to torqueMax
         for i in range(self.n_phases):
-            self.constraints.add(maximal_tau, phase=i, node=Node.ALL, minimal_tau=self.tau_min)
+            self.constraints.add(maximal_tau, phase=i, node=Node.ALL, minimal_tau=self.tau_min,
+                                 get_all_nodes_at_once=True)
 
         # Positivity of CoM_dot on z axis prior the take-off
-        self.constraints.add(com_dot_z, phase=1, node=Node.END, min_bound=0, max_bound=np.inf)
+        self.constraints.add(com_dot_z, phase=1, node=Node.END, min_bound=0, max_bound=np.inf, get_all_nodes_at_once=True)
 
         # Constraint arm positivity (prevent from local minimum with arms in the back)
         self.constraints.add(
-            ConstraintFcn.TRACK_STATE, phase=self.takeoff, node=Node.END, index=3, min_bound=1.0, max_bound=np.inf
+            ConstraintFcn.TRACK_STATE, phase=self.takeoff, node=Node.END, index=3, min_bound=1.0, max_bound=np.inf,
+            get_all_nodes_at_once=True
         )
 
         # Floor constraints for flat foot phases
@@ -186,7 +188,8 @@ class Jumper5Phases:
             # Do not pull on floor
             for i in self.heel_and_toe_idx:
                 self.constraints.add(
-                    ConstraintFcn.CONTACT_FORCE, phase=p, node=Node.ALL, contact_force_idx=i, max_bound=np.inf
+                    ConstraintFcn.CONTACT_FORCE, phase=p, node=Node.ALL, contact_force_idx=i, max_bound=np.inf,
+                    get_all_nodes_at_once=True
                 )
 
             # Non-slipping constraints
@@ -197,6 +200,7 @@ class Jumper5Phases:
                 normal_component_idx=(1, 2),
                 tangential_component_idx=0,
                 static_friction_coefficient=0.5,
+                get_all_nodes_at_once=True,
             )
 
         # Floor constraints for toe only phases
@@ -204,7 +208,8 @@ class Jumper5Phases:
             # Do not pull on floor
             for i in self.toe_idx:
                 self.constraints.add(
-                    ConstraintFcn.CONTACT_FORCE, phase=p, node=Node.ALL, contact_force_idx=i, max_bound=np.inf
+                    ConstraintFcn.CONTACT_FORCE, phase=p, node=Node.ALL, contact_force_idx=i, max_bound=np.inf,
+                    get_all_nodes_at_once=True
                 )
 
             # Non-slipping constraints
@@ -215,6 +220,7 @@ class Jumper5Phases:
                 normal_component_idx=1,
                 tangential_component_idx=0,
                 static_friction_coefficient=0.5,
+                get_all_nodes_at_once=True,
             )
 
     def _set_objective_functions(self):
@@ -228,6 +234,7 @@ class Jumper5Phases:
                 weight=0.1,
                 phase=p,
                 index=range(self.n_q, self.n_q + self.n_qdot),
+                get_all_nodes_at_once=True,
             )
 
         for i in range(self.n_phases):
@@ -239,13 +246,15 @@ class Jumper5Phases:
                     phase=i,
                     min_bound=self.time_min[i],
                     max_bound=self.time_max[i],
+                    get_all_nodes_at_once=True,
                 )
 
     def _set_boundary_conditions(self):
         for i in range(self.n_phases):
             # Path constraints
             self.x_bounds.add(
-                bounds=QAndQDotBounds(self.models[i], q_mapping=self.q_mapping[i], qdot_mapping=self.qdot_mapping[i])
+                bounds=QAndQDotBounds(self.models[i], q_mapping=self.q_mapping[i], qdot_mapping=self.qdot_mapping[i]),
+                get_all_nodes_at_once=True
             )
             self.u_bounds.add([-500] * self.n_tau, [500] * self.n_tau)
 
@@ -258,6 +267,7 @@ class Jumper5Phases:
             phase=self.n_phases - 1,
             index=range(2, self.n_q + self.n_qdot),
             target=self.initial_states[2:, :],
+            get_all_nodes_at_once=True,
         )
 
     def _set_initial_guesses(self):
@@ -273,8 +283,10 @@ class Jumper5Phases:
         self.phase_transitions.add(PhaseTransitionFcn.IMPACT, phase_pre_idx=3)
 
         # The end of the aerial
-        self.constraints.add(toe_on_floor, phase=2, node=Node.END, min_bound=-0.001, max_bound=0.001)
-        self.constraints.add(heel_on_floor, phase=3, node=Node.END, min_bound=-0.001, max_bound=0.001)
+        self.constraints.add(toe_on_floor, phase=2, node=Node.END, min_bound=-0.001, max_bound=0.001,
+                             get_all_nodes_at_once=True)
+        self.constraints.add(heel_on_floor, phase=3, node=Node.END, min_bound=-0.001, max_bound=0.001,
+                             get_all_nodes_at_once=True)
 
         # Allow for passive velocity at reception
         self.x_bounds[3].min[self.n_q :, 0] = 2 * self.x_bounds[3].min[self.n_q :, 0]
@@ -308,6 +320,7 @@ class Jumper5Phases:
                         "linear_solver": linear_solver,
                         "hessian_approximation": "limited-memory",
                         "max_iter": limit_memory_max_iter,
+                        "print_level": 0
                     },
                 )
             if limit_memory_max_iter > 0 and exact_max_iter > 0:
@@ -320,6 +333,7 @@ class Jumper5Phases:
                         "hessian_approximation": "exact",
                         "max_iter": exact_max_iter,
                         "warm_start_init_point": "yes",
+                        "print_level": 0
                     },
                 )
 

@@ -39,10 +39,8 @@ def get_last_contact_force_null(pn: PenaltyNode, contact_name: str) -> MX:
     The value that should be constrained in the MX format
 
     """
-    if pn.u is None:
-        force = pn.nlp.contact_forces_func(pn.x[-1], MX.zeros(0, 0), pn.p)
-    else:
-        force = pn.nlp.contact_forces_func(pn.x[-1], pn.u[-1], pn.p)
+
+    force = pn.nlp.contact_forces_func(pn.x[-1], pn.u[-1], pn.p)
 
     if contact_name == "all":
         val = force
@@ -117,17 +115,17 @@ def track_sum_contact_forces(pn: PenaltyNode, grf: np.ndarray) -> MX:
         # --- tracking forces ---
         val = vertcat(
             val,
-            grf[0, pn.t]
+            grf[0, pn.t[n]]
             - (forces["Heel_r_X"][n] + forces["Meta_1_r_X"][n] + forces["Meta_5_r_X"][n] + forces["Toe_r_X"][n]),
         )
         val = vertcat(
             val,
-            grf[1, pn.t]
+            grf[1, pn.t[n]]
             - (forces["Heel_r_Y"][n] + forces["Meta_1_r_Y"][n] + forces["Meta_5_r_Y"][n] + forces["Toe_r_Y"][n]),
         )
         val = vertcat(
             val,
-            grf[2, pn.t]
+            grf[2, pn.t[n]]
             - (forces["Heel_r_Z"][n] + forces["Meta_1_r_Z"][n] + forces["Meta_5_r_Z"][n] + forces["Toe_r_Z"][n]),
         )
     return val
@@ -345,6 +343,7 @@ def prepare_ocp(
             weight=0.1,
             quadratic=True,
             phase=p,
+            get_all_nodes_at_once=True,
         )
 
     for p in range(1, nb_phases - 1):
@@ -357,6 +356,7 @@ def prepare_ocp(
             weight=0.01,
             quadratic=True,
             phase=p,
+            get_all_nodes_at_once=True,
         )
 
     # Dynamics
@@ -412,6 +412,7 @@ def prepare_ocp(
         node=Node.ALL,
         contact_name="Heel_r",
         phase=1,
+        get_all_nodes_at_once=True,
     )
 
     # --- phase forefoot ---
@@ -444,6 +445,7 @@ def prepare_ocp(
         node=Node.ALL,
         contact_name="all",
         phase=2,
+        get_all_nodes_at_once=True,
     )
 
     # Phase Transitions

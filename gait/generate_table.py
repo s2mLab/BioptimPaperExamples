@@ -52,6 +52,7 @@ def generate_table(out):
             "hessian_approximation": "exact",
             "limited_memory_max_history": 50,
             "linear_solver": "ma57",
+            "print_level": 0
         },
     )
     toc = time() - tic

@@ -145,7 +145,8 @@ def prepare_ocp(biorbd_model_path: str, final_time: float, n_shooting: int) -> O
 
     # Set time as a variable
     constraints = ConstraintList()
-    constraints.add(ConstraintFcn.TIME_CONSTRAINT, node=Node.END, min_bound=0.5, max_bound=1.5)
+    constraints.add(ConstraintFcn.TIME_CONSTRAINT, node=Node.END, min_bound=0.5, max_bound=1.5,
+                    get_all_nodes_at_once=True)
 
     return OptimalControlProgram(
         biorbd_model,
@@ -226,6 +227,7 @@ def prepare_ocp_quaternion(biorbd_model_path, final_time, n_shooting):
         states_to_euler_rate_func=states_to_euler_rate_func,
         custom_type=ObjectiveFcn.Lagrange,
         weight=-1,
+        get_all_nodes_at_once=True,
     )
     objective_functions.add(ObjectiveFcn.Lagrange.MINIMIZE_TORQUE, weight=1e-6)
 
@@ -326,13 +328,15 @@ def prepare_ocp_quaternion(biorbd_model_path, final_time, n_shooting):
 
     # Set time as a variable
     constraints = ConstraintList()
-    constraints.add(ConstraintFcn.TIME_CONSTRAINT, node=Node.END, min_bound=0.5, max_bound=1.5)
+    constraints.add(ConstraintFcn.TIME_CONSTRAINT, node=Node.END, min_bound=0.5, max_bound=1.5,
+                    get_all_nodes_at_once=True)
     constraints.add(
         final_position_quaternion,
         states_to_euler_func=states_to_euler_func,
         node=Node.END,
         min_bound=-15 * np.pi / 180,
         max_bound=15 * np.pi / 180,
+        get_all_nodes_at_once=True,
     )
 
     return OptimalControlProgram(
@@ -380,7 +384,7 @@ def euler_to_quaternion(angle):
 
 def euler_rate_to_body_velocities(quaternion, euler_rate, euler_angle):
     quaternion_biorbd = biorbd.Quaternion(quaternion[0], quaternion[1], quaternion[2], quaternion[3])
-    euler_rate_biorbd = biorbd.Vector3d(euler_rate[0], euler_rate[1], euler_rate[2])
-    euler_biorbd = biorbd.Vector3d(euler_angle[0], euler_angle[1], euler_angle[2])
+    euler_rate_biorbd = cas.vertcat(euler_rate[0], euler_rate[1], euler_rate[2])
+    euler_biorbd = cas.vertcat(euler_angle[0], euler_angle[1], euler_angle[2])
     omega = biorbd.Quaternion.eulerDotToOmega(quaternion_biorbd, euler_rate_biorbd, euler_biorbd, "xyz").to_mx()
     return cas.Function("euler_rate_to_body_velocities", [quaternion, euler_rate, euler_angle], [omega])

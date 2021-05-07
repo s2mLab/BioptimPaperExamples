@@ -13,7 +13,7 @@ def generate_table(out):
 
     # IPOPT
     ocp = prepare_ocp(biorbd_model_path=model_path)
-    opts = {"linear_solver": "ma57"}
+    opts = {"linear_solver": "ma57",  "print_level": 0}
 
     # --- Solve the program --- #
     tic = time()

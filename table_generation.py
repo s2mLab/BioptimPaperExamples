@@ -112,15 +112,15 @@ class TableOCP:
 
 table = TableOCP()
 
-table.add("gait")
-table.add("jumper")
+# table.add("gait") # requires 16Gb of RAM and takes time to converge (~4h)
+# table.add("jumper") # takes time to converge (~30 min)
 table.add("mhe")
 table.add("pendulum")
 table.add("pointing")
 table.add("somersault")
 
-gait_table(table["gait"])
-jumper_table(table["jumper"])
+# gait_table(table["gait"])
+# jumper_table(table["jumper"])
 mhe_table(table["mhe"])
 pendulum_table(table["pendulum"])
 pointing_table(table["pointing"])

@@ -10,13 +10,16 @@ from bioptim import (
     BoundsList,
     InitialGuessList,
     InterpolationType,
-    Problem,
+    ConfigureProblem,
     DynamicsFunctions,
+    Node,
 )
 
 
 def custom_dynamic(states, controls, parameters, nlp):
-    q, qdot, tau = DynamicsFunctions.dispatch_q_qdot_tau_data(states, controls, nlp)
+    q = DynamicsFunctions.get(nlp.states["q"], states)
+    qdot = DynamicsFunctions.get(nlp.states["qdot"], states)
+    tau = DynamicsFunctions.get(nlp.controls["tau"], controls)
 
     force_vector = cas.MX.zeros(6)
     force_vector[5] = -200 * q[0]
@@ -31,9 +34,10 @@ def custom_dynamic(states, controls, parameters, nlp):
 
 
 def custom_configure(ocp, nlp):
-    Problem.configure_q_qdot(nlp, as_states=True, as_controls=False)
-    Problem.configure_tau(nlp, as_states=False, as_controls=True)
-    Problem.configure_dynamics_function(ocp, nlp, custom_dynamic)
+    ConfigureProblem.configure_q(nlp, as_states=True, as_controls=False)
+    ConfigureProblem.configure_qdot(nlp, as_states=True, as_controls=False)
+    ConfigureProblem.configure_tau(nlp, as_states=False, as_controls=True)
+    ConfigureProblem.configure_dynamics_function(ocp, nlp, custom_dynamic)
 
 
 def prepare_ocp(biorbd_model_path: str, use_sx: bool = False) -> OptimalControlProgram:
@@ -55,7 +59,7 @@ def prepare_ocp(biorbd_model_path: str, use_sx: bool = False) -> OptimalControlP
         biorbd.Model(biorbd_model_path),
     )
 
-    # Problem parameters
+    # ConfigureProblem parameters
     number_shooting_points = (
         50,
         50,
@@ -70,12 +74,14 @@ def prepare_ocp(biorbd_model_path: str, use_sx: bool = False) -> OptimalControlP
     objective_functions = ObjectiveList()
     objective_functions.add(
         ObjectiveFcn.Lagrange.TRACK_STATE,
+        key="q",
+        node=Node.ALL,
         weight=1,
         index=0,
         target=np.ones((1, number_shooting_points[0] + 1)) * -0.5,
         phase=1,
     )
-    objective_functions.add(ObjectiveFcn.Lagrange.MINIMIZE_TORQUE, weight=1e-6, phase=1)
+    objective_functions.add(ObjectiveFcn.Lagrange.MINIMIZE_CONTROL, key="tau", weight=1e-6, phase=1)
 
     # Dynamics
     dynamics = DynamicsList()

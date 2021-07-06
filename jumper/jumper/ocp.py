@@ -1,5 +1,4 @@
 import numpy as np
-from casadi import if_else, lt, vertcat
 import biorbd
 from bioptim import (
     PenaltyNode,
@@ -14,74 +13,33 @@ from bioptim import (
     QAndQDotBounds,
     PhaseTransitionList,
     PhaseTransitionFcn,
-    BiMapping,
+    BiMappingList,
     InitialGuess,
     InterpolationType,
     OptimalControlProgram,
     InitialGuessList,
+    BiorbdInterface,
 )
 
 
-def maximal_tau(nodes: PenaltyNode, minimal_tau):
-    nlp = nodes.nlp
-    nq = nlp.mapping["q"].to_first.len
-    q = [nlp.mapping["q"].to_second.map(mx[:nq]) for mx in nodes.x]
-    qdot = [nlp.mapping["qdot"].to_second.map(mx[nq:]) for mx in nodes.x]
-
-    min_bound = []
-    max_bound = []
-    func = biorbd.to_casadi_func("torqueMax", nlp.model.torqueMax, nlp.q, nlp.qdot)
-    for n in range(len(nodes.u)):
-        bound = func(q[n], qdot[n])
-        min_bound.append(
-            nlp.mapping["tau"].to_first.map(if_else(lt(bound[:, 1], minimal_tau), minimal_tau, bound[:, 1]))
-        )
-        max_bound.append(
-            nlp.mapping["tau"].to_first.map(if_else(lt(bound[:, 0], minimal_tau), minimal_tau, bound[:, 0]))
-        )
-
-    obj = vertcat(*nodes.u)
-    min_bound = vertcat(*min_bound)
-    max_bound = vertcat(*max_bound)
-
-    return (
-        vertcat(np.zeros(min_bound.shape), np.ones(max_bound.shape) * -np.inf),
-        vertcat(obj + min_bound, obj - max_bound),
-        vertcat(np.ones(min_bound.shape) * np.inf, np.zeros(max_bound.shape)),
-    )
-
-
 def com_dot_z(nodes: PenaltyNode):
-    nlp = nodes.nlp
-    x = nodes.x
-    q = nlp.mapping["q"].to_second.map(x[0][: nlp.shape["q"]])
-    qdot = nlp.mapping["q"].to_second.map(x[0][nlp.shape["q"] :])
-    com_dot_func = biorbd.to_casadi_func("Compute_CoM_dot", nlp.model.CoMdot, nlp.q, nlp.qdot)
-    com_dot = com_dot_func(q, qdot)
-    return com_dot[2]
+    z = nodes.nlp.model.CoMdot(nodes.nlp.states["q"].mx, nodes.nlp.states["qdot"].mx).to_mx()[2, 0]
+    return BiorbdInterface.mx_to_cx("com_dot", z, nodes.nlp.states["q"], nodes.nlp.states["qdot"])
 
 
-def toe_on_floor(nodes: PenaltyNode):
-    nlp = nodes.nlp
-    nb_q = nlp.shape["q"]
-    q_reduced = nodes.x[0][:nb_q]
-    q = nlp.mapping["q"].to_second.map(q_reduced)
-    marker_func = biorbd.to_casadi_func("toe_on_floor", nlp.model.marker, nlp.q, 2)
-    toe_marker_z = marker_func(q)[2]
-    return toe_marker_z + 0.779  # floor = -0.77865438
+def toe_on_floor(nodes: PenaltyNode, floor: float):
+    toe_marker_z = nodes.nlp.model.marker(nodes.nlp.states["q"].mx, 2).to_mx()[2, 0]
+    return BiorbdInterface.mx_to_cx("toe_marker_z", toe_marker_z + floor, nodes.nlp.states["q"])
 
 
-def heel_on_floor(nodes: PenaltyNode):
-    nlp = nodes.nlp
-    nb_q = nlp.shape["q"]
-    q_reduced = nodes.x[0][:nb_q]
-    q = nlp.mapping["q"].to_second.map(q_reduced)
-    marker_func = biorbd.to_casadi_func("heel_on_floor", nlp.model.marker, nlp.q, 3)
-    tal_marker_z = marker_func(q)[2]
-    return tal_marker_z + 0.779  # floor = -0.77865829
+def heel_on_floor(nodes: PenaltyNode, floor: float):
+    toe_marker_z = nodes.nlp.model.marker(nodes.nlp.states["q"].mx, 3).to_mx()[2, 0]
+    return BiorbdInterface.mx_to_cx("toe_marker_z", toe_marker_z + floor, nodes.nlp.states["q"])
 
 
 class Jumper5Phases:
+    floor = 0.779  # floor = -0.77865438
+
     def __init__(self, model_paths, n_shoot, time_min, phase_time, time_max, initial_pose, n_thread=1):
         self.models = []
         self._load_models(model_paths)
@@ -102,7 +60,7 @@ class Jumper5Phases:
         self.heel_and_toe_idx = (1, 2, 4, 5)  # Contacts indices of heel and toe in bioMod 2 contacts
         self.toe_idx = (1, 3)  # Contacts indices of toe in bioMod 1 contact
         self.n_q, self.n_qdot, self.n_tau = -1, -1, -1
-        self.q_mapping, self.qdot_mapping, self.tau_mapping = None, None, None
+        self.mapping_list = BiMappingList()
         self._set_dimensions_and_mapping()
 
         # Prepare the optimal control program
@@ -138,9 +96,7 @@ class Jumper5Phases:
             u_bounds=self.u_bounds,
             objective_functions=self.objective_functions,
             constraints=self.constraints,
-            q_mapping=self.q_mapping,
-            qdot_mapping=self.q_mapping,
-            tau_mapping=self.tau_mapping,
+            variable_mappings=self.mapping_list,
             phase_transitions=self.phase_transitions,
             n_threads=n_thread,
         )
@@ -152,35 +108,31 @@ class Jumper5Phases:
         self.initial_states = np.array([list(initial_pose) + initial_velocity]).T
 
     def _set_dimensions_and_mapping(self):
-        q_mapping = BiMapping([0, 1, 2, None, 3, None, 3, 4, 5, 6, 4, 5, 6], [0, 1, 2, 4, 7, 8, 9])
-        self.q_mapping = [q_mapping for _ in range(self.n_phases)]
-        self.qdot_mapping = [q_mapping for _ in range(self.n_phases)]
-        tau_mapping = BiMapping([None, None, None, None, 0, None, 0, 1, 2, 3, 1, 2, 3], [4, 7, 8, 9])
-        self.tau_mapping = [tau_mapping for _ in range(self.n_phases)]
-        self.n_q = q_mapping.to_first.len
+        self.mapping_list.add("q", [0, 1, 2, 3, 3, 4, 5, 6, 4, 5, 6], [0, 1, 2, 3, 5, 6, 7])
+        self.mapping_list.add("qdot", [0, 1, 2, 3, 3, 4, 5, 6, 4, 5, 6], [0, 1, 2, 3, 5, 6, 7])
+        self.mapping_list.add("tau", [None, None, None, 0, 0, 1, 2, 3, 1, 2, 3], [3, 5, 6, 7])
+        self.n_q = len(self.mapping_list["q"].to_first)
         self.n_qdot = self.n_q
-        self.n_tau = tau_mapping.to_first.len
+        self.n_tau = len(self.mapping_list["tau"].to_first)
 
     def _set_dynamics(self):
-        self.dynamics.add(DynamicsFcn.TORQUE_DRIVEN_WITH_CONTACT)  # Flat foot
-        self.dynamics.add(DynamicsFcn.TORQUE_DRIVEN_WITH_CONTACT)  # Toe only
+        self.dynamics.add(DynamicsFcn.TORQUE_DRIVEN, with_contact=True, expand=False)  # Flat foot
+        self.dynamics.add(DynamicsFcn.TORQUE_DRIVEN, with_contact=True, expand=False)  # Toe only
         self.dynamics.add(DynamicsFcn.TORQUE_DRIVEN)  # Aerial phase
-        self.dynamics.add(DynamicsFcn.TORQUE_DRIVEN_WITH_CONTACT)  # Toe only
-        self.dynamics.add(DynamicsFcn.TORQUE_DRIVEN_WITH_CONTACT)  # Flat foot
+        self.dynamics.add(DynamicsFcn.TORQUE_DRIVEN, with_contact=True, expand=False)  # Toe only
+        self.dynamics.add(DynamicsFcn.TORQUE_DRIVEN, with_contact=True, expand=False)  # Flat foot
 
     def _set_constraints(self):
         # Torque constrained to torqueMax
         for i in range(self.n_phases):
-            self.constraints.add(maximal_tau, phase=i, node=Node.ALL, minimal_tau=self.tau_min,
-                                 get_all_nodes_at_once=True)
+            self.constraints.add(ConstraintFcn.TORQUE_MAX_FROM_ACTUATORS, phase=i, node=Node.ALL_SHOOTING, min_torque=self.tau_min)
 
         # Positivity of CoM_dot on z axis prior the take-off
-        self.constraints.add(com_dot_z, phase=1, node=Node.END, min_bound=0, max_bound=np.inf, get_all_nodes_at_once=True)
+        self.constraints.add(com_dot_z, phase=1, node=Node.END, min_bound=0, max_bound=np.inf)
 
         # Constraint arm positivity (prevent from local minimum with arms in the back)
         self.constraints.add(
-            ConstraintFcn.TRACK_STATE, phase=self.takeoff, node=Node.END, index=3, min_bound=1.0, max_bound=np.inf,
-            get_all_nodes_at_once=True
+            ConstraintFcn.TRACK_STATE, key="q", phase=self.takeoff, node=Node.END, index=3, min_bound=1.0, max_bound=np.inf
         )
 
         # Floor constraints for flat foot phases
@@ -188,19 +140,17 @@ class Jumper5Phases:
             # Do not pull on floor
             for i in self.heel_and_toe_idx:
                 self.constraints.add(
-                    ConstraintFcn.CONTACT_FORCE, phase=p, node=Node.ALL, contact_force_idx=i, max_bound=np.inf,
-                    get_all_nodes_at_once=True
+                    ConstraintFcn.TRACK_CONTACT_FORCES, phase=p, node=Node.ALL_SHOOTING, contact_index=i, max_bound=np.inf,
                 )
 
             # Non-slipping constraints
             self.constraints.add(  # On only one of the feet
                 ConstraintFcn.NON_SLIPPING,
                 phase=p,
-                node=Node.ALL,
+                node=Node.ALL_SHOOTING,
                 normal_component_idx=(1, 2),
                 tangential_component_idx=0,
-                static_friction_coefficient=0.5,
-                get_all_nodes_at_once=True,
+                static_friction_coefficient=0.5
             )
 
         # Floor constraints for toe only phases
@@ -208,19 +158,17 @@ class Jumper5Phases:
             # Do not pull on floor
             for i in self.toe_idx:
                 self.constraints.add(
-                    ConstraintFcn.CONTACT_FORCE, phase=p, node=Node.ALL, contact_force_idx=i, max_bound=np.inf,
-                    get_all_nodes_at_once=True
+                    ConstraintFcn.TRACK_CONTACT_FORCES, phase=p, node=Node.ALL_SHOOTING, contact_index=i, max_bound=np.inf,
                 )
 
             # Non-slipping constraints
             self.constraints.add(  # On only one of the feet
                 ConstraintFcn.NON_SLIPPING,
                 phase=p,
-                node=Node.ALL,
+                node=Node.ALL_SHOOTING,
                 normal_component_idx=1,
                 tangential_component_idx=0,
                 static_friction_coefficient=0.5,
-                get_all_nodes_at_once=True,
             )
 
     def _set_objective_functions(self):
@@ -230,11 +178,11 @@ class Jumper5Phases:
         # Minimize unnecessary movement during for the aerial and reception phases
         for p in range(2, 5):
             self.objective_functions.add(
-                ObjectiveFcn.Lagrange.MINIMIZE_STATE_DERIVATIVE,
+                ObjectiveFcn.Lagrange.MINIMIZE_STATE,
+                key="qdot",
+                derivative=True,
                 weight=0.1,
                 phase=p,
-                index=range(self.n_q, self.n_q + self.n_qdot),
-                get_all_nodes_at_once=True,
             )
 
         for i in range(self.n_phases):
@@ -246,16 +194,12 @@ class Jumper5Phases:
                     phase=i,
                     min_bound=self.time_min[i],
                     max_bound=self.time_max[i],
-                    get_all_nodes_at_once=True,
                 )
 
     def _set_boundary_conditions(self):
         for i in range(self.n_phases):
             # Path constraints
-            self.x_bounds.add(
-                bounds=QAndQDotBounds(self.models[i], q_mapping=self.q_mapping[i], qdot_mapping=self.qdot_mapping[i]),
-                get_all_nodes_at_once=True
-            )
+            self.x_bounds.add(bounds=QAndQDotBounds(self.models[i], self.mapping_list))
             self.u_bounds.add([-500] * self.n_tau, [500] * self.n_tau)
 
         # Enforce the initial pose and velocity
@@ -264,10 +208,16 @@ class Jumper5Phases:
         # Target the final pose (except for translation) and velocity
         self.objective_functions.add(
             ObjectiveFcn.Mayer.TRACK_STATE,
+            key="q",
             phase=self.n_phases - 1,
-            index=range(2, self.n_q + self.n_qdot),
-            target=self.initial_states[2:, :],
-            get_all_nodes_at_once=True,
+            index=range(2, self.n_q),
+            target=self.initial_states[2:self.n_q, :],
+        )
+        self.objective_functions.add(
+            ObjectiveFcn.Mayer.TRACK_STATE,
+            key="qdot",
+            phase=self.n_phases - 1,
+            target=self.initial_states[self.n_q:, :],
         )
 
     def _set_initial_guesses(self):
@@ -283,10 +233,8 @@ class Jumper5Phases:
         self.phase_transitions.add(PhaseTransitionFcn.IMPACT, phase_pre_idx=3)
 
         # The end of the aerial
-        self.constraints.add(toe_on_floor, phase=2, node=Node.END, min_bound=-0.001, max_bound=0.001,
-                             get_all_nodes_at_once=True)
-        self.constraints.add(heel_on_floor, phase=3, node=Node.END, min_bound=-0.001, max_bound=0.001,
-                             get_all_nodes_at_once=True)
+        self.constraints.add(toe_on_floor, phase=2, node=Node.END, min_bound=-0.001, max_bound=0.001, floor=self.floor)
+        self.constraints.add(heel_on_floor, phase=3, node=Node.END, min_bound=-0.001, max_bound=0.001, floor=self.floor)
 
         # Allow for passive velocity at reception
         self.x_bounds[3].min[self.n_q :, 0] = 2 * self.x_bounds[3].min[self.n_q :, 0]

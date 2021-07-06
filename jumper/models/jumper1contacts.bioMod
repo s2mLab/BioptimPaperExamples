@@ -161,9 +161,8 @@ version   4
             0.00000    1.00000    0.00000    -0.10658
             0.00000    0.00000    1.00000    0.30485
             0.00000    0.00000    0.00000    1.00000
-        rotations    zx
-        rangesQ -0.1 0.1 
-                -0.7 3.1
+        rotations    x
+        rangesQ -0.7 3.1
         rangesQdot -17 13 
                    -17 17
         mass    2.39085
@@ -207,18 +206,6 @@ version   4
 
     // Actuator
         actuator    BrasD
-            type    constant
-            dof     RotZ
-            direction       positive
-            Tmax    15
-        endactuator
-        actuator        BrasD
-            type    constant
-            dof     RotZ
-            direction       negative
-            Tmax    15
-        endactuator
-        actuator    BrasD
             type    Gauss3p
             dof     RotX
             direction    positive
@@ -260,9 +247,8 @@ version   4
             0.00000    1.00000    0.00000    -0.10658
             0.00000    0.00000    1.00000    0.30485
             0.00000    0.00000    0.00000    1.00000
-        rotations    zx
-        rangesQ -0.1 0.1 
-                -0.7 3.1
+        rotations    x
+        rangesQ -0.7 3.1
         rangesQdot -17 13 
                    -17 17
         mass    2.39085
@@ -305,18 +291,6 @@ version   4
     endmarker
 
     // Actuator
-        actuator    BrasG
-            type    constant
-            dof     RotZ
-            direction       positive
-            Tmax    15
-        endactuator
-        actuator    BrasG
-            type    constant
-            dof     RotZ
-            direction       negative
-            Tmax    15
-        endactuator
         actuator    BrasG
             type    Gauss3p
             dof     RotX

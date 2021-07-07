@@ -51,5 +51,6 @@ try:
     os.mkdir(root_folder + "figure")
 except FileExistsError:
     pass
-plt.savefig("figure/Twisting_armTech.eps", format="eps")
+
+plt.savefig(f"{root_folder}/figure/Twisting_armTech.eps", format="eps")
 plt.show()

@@ -7,7 +7,7 @@ from bioptim import (
     Bounds,
     ConstraintFcn,
     ObjectiveFcn,
-    BiMapping,
+    BiMappingList,
     ConstraintList,
     InitialGuessList,
     InterpolationType,
@@ -17,6 +17,7 @@ from bioptim import (
     BoundsList,
     OdeSolver,
     PenaltyNode,
+    BiorbdInterface,
 )
 
 
@@ -46,12 +47,12 @@ def prepare_ocp(biorbd_model_path: str, final_time: float, n_shooting: int) -> O
 
     # Add objective functions
     objective_functions = ObjectiveList()
-    objective_functions.add(ObjectiveFcn.Lagrange.MINIMIZE_STATE, index=n_q + 5, weight=-1)
-    objective_functions.add(ObjectiveFcn.Lagrange.MINIMIZE_TORQUE, weight=1e-6)
+    objective_functions.add(ObjectiveFcn.Lagrange.MINIMIZE_STATE, key="qdot", node=Node.ALL, index=5, weight=-1)
+    objective_functions.add(ObjectiveFcn.Lagrange.MINIMIZE_CONTROL, key="tau", weight=1e-6)
 
     # Dynamics
     dynamics = DynamicsList()
-    dynamics.add(DynamicsFcn.TORQUE_DRIVEN)
+    dynamics.add(DynamicsFcn.TORQUE_DRIVEN, expand=False)
 
     # Initial guesses
     vz0 = 6.0
@@ -138,15 +139,15 @@ def prepare_ocp(biorbd_model_path: str, final_time: float, n_shooting: int) -> O
     u_bounds = BoundsList()
     u_bounds.add([tau_min] * n_tau, [tau_max] * n_tau)
 
-    u_mapping = BiMapping([None, None, None, None, None, None, 0, 1], [6, 7])
+    mapping = BiMappingList()
+    mapping.add("tau", [None, None, None, None, None, None, 0, 1], [6, 7])
 
     u_init = InitialGuessList()
     u_init.add([tau_init] * n_tau)
 
     # Set time as a variable
     constraints = ConstraintList()
-    constraints.add(ConstraintFcn.TIME_CONSTRAINT, node=Node.END, min_bound=0.5, max_bound=1.5,
-                    get_all_nodes_at_once=True)
+    constraints.add(ConstraintFcn.TIME_CONSTRAINT, node=Node.END, min_bound=0.5, max_bound=1.5)
 
     return OptimalControlProgram(
         biorbd_model,
@@ -160,37 +161,9 @@ def prepare_ocp(biorbd_model_path: str, final_time: float, n_shooting: int) -> O
         objective_functions,
         constraints,
         n_threads=8,
-        tau_mapping=u_mapping,
+        variable_mappings=mapping,
         ode_solver=OdeSolver.RK4(),
     )
-
-
-def states_to_euler_rate(states):
-    # maximizing Lagrange twist velocity (indeterminate of quaternion to Euler of 2*pi*n)
-
-    def body_vel_to_euler_rate(w, e):
-        # xyz convention
-        _ = e[0]
-        th = e[1]
-        ps = e[2]
-        wx = w[0]
-        wy = w[1]
-        wz = w[2]
-        dph = cas.cos(ps) / cas.cos(th) * wx - cas.sin(ps) / cas.cos(th) * wy
-        dth = cas.sin(ps) * wx + cas.cos(ps) * wy
-        dps = -cas.cos(ps) * cas.sin(th) / cas.cos(th) * wx + cas.sin(th) * cas.sin(ps) / cas.cos(th) * wy + wz
-        return cas.vertcat(dph, dth, dps)
-
-    quaternion_cas = cas.vertcat(states[8], states[3], states[4], states[5])
-    quaternion_cas /= cas.norm_fro(quaternion_cas)
-
-    quaternion = biorbd.Quaternion(quaternion_cas[0], quaternion_cas[1], quaternion_cas[2], quaternion_cas[3])
-
-    omega = cas.vertcat(states[12:15])
-    euler = biorbd.Rotation.toEulerAngles(biorbd.Quaternion.toMatrix(quaternion), "xyz").to_mx()
-    eul_rate = body_vel_to_euler_rate(omega, euler)
-
-    return cas.Function("max_twist", [states], [eul_rate]).expand()
 
 
 def prepare_ocp_quaternion(biorbd_model_path, final_time, n_shooting):
@@ -219,21 +192,12 @@ def prepare_ocp_quaternion(biorbd_model_path, final_time, n_shooting):
 
     # Add objective functions
     objective_functions = ObjectiveList()
-    states_mx = cas.MX.sym("states_mx", n_q + n_qdot)
-    states_to_euler_rate_func = states_to_euler_rate(states_mx)
-    states_to_euler_func = states_to_euler(states_mx)
-    objective_functions.add(
-        max_twist_quaternion,
-        states_to_euler_rate_func=states_to_euler_rate_func,
-        custom_type=ObjectiveFcn.Lagrange,
-        weight=-1,
-        get_all_nodes_at_once=True,
-    )
-    objective_functions.add(ObjectiveFcn.Lagrange.MINIMIZE_TORQUE, weight=1e-6)
+    objective_functions.add(max_twist_quaternion, custom_type=ObjectiveFcn.Lagrange, weight=-1, node=Node.ALL)
+    objective_functions.add(ObjectiveFcn.Lagrange.MINIMIZE_CONTROL, key="tau", weight=1e-6)
 
     # Dynamics
     dynamics = DynamicsList()
-    dynamics.add(DynamicsFcn.TORQUE_DRIVEN)
+    dynamics.add(DynamicsFcn.TORQUE_DRIVEN, expand=False)
 
     # Initial guesses
     vz0 = 6.0
@@ -321,22 +285,17 @@ def prepare_ocp_quaternion(biorbd_model_path, final_time, n_shooting):
     u_bounds = BoundsList()
     u_bounds.add([tau_min] * n_tau, [tau_max] * n_tau)
 
-    u_mapping = BiMapping([None, None, None, None, None, None, 0, 1], [6, 7])
+    mapping = BiMappingList()
+    mapping.add("tau", [None, None, None, None, None, None, 0, 1], [6, 7])
 
     u_init = InitialGuessList()
     u_init.add([tau_init] * n_tau)
 
     # Set time as a variable
     constraints = ConstraintList()
-    constraints.add(ConstraintFcn.TIME_CONSTRAINT, node=Node.END, min_bound=0.5, max_bound=1.5,
-                    get_all_nodes_at_once=True)
+    constraints.add(ConstraintFcn.TIME_CONSTRAINT, node=Node.END, min_bound=0.5, max_bound=1.5)
     constraints.add(
-        final_position_quaternion,
-        states_to_euler_func=states_to_euler_func,
-        node=Node.END,
-        min_bound=-15 * np.pi / 180,
-        max_bound=15 * np.pi / 180,
-        get_all_nodes_at_once=True,
+        final_position_quaternion, node=Node.END, index=0, min_bound=-15 * np.pi / 180, max_bound=15 * np.pi / 180
     )
 
     return OptimalControlProgram(
@@ -351,29 +310,52 @@ def prepare_ocp_quaternion(biorbd_model_path, final_time, n_shooting):
         objective_functions,
         constraints,
         n_threads=8,
-        tau_mapping=u_mapping,
+        variable_mappings=mapping,
         ode_solver=OdeSolver.RK4(),
     )
 
 
-def max_twist_quaternion(pn: PenaltyNode, states_to_euler_rate_func) -> cas.MX:
-    val = []
-    for i in range(pn.nlp.ns):
-        val = cas.vertcat(val, states_to_euler_rate_func(pn.x[i])[-1])
-    return val
+def max_twist_quaternion(pn: PenaltyNode) -> cas.MX:
+    val = states_to_euler_rate(pn.nlp.states["q"].mx, pn.nlp.states["qdot"].mx)
+    return BiorbdInterface.mx_to_cx("final_position", val, pn.nlp.states["q"], pn.nlp.states["qdot"])
 
 
-def states_to_euler(states):
-    quaternion_cas = cas.vertcat(states[8], states[3], states[4], states[5])
+def final_position_quaternion(pn: PenaltyNode) -> cas.MX:
+    val = states_to_euler(pn.nlp.states["q"].mx)
+    return BiorbdInterface.mx_to_cx("final_position", val, pn.nlp.states["q"])
+
+
+def states_to_euler(q):
+    quaternion_cas = cas.vertcat(q[8], q[3], q[4], q[5])
     quaternion_cas /= cas.norm_fro(quaternion_cas)
     quaternion = biorbd.Quaternion(quaternion_cas[0], quaternion_cas[1], quaternion_cas[2], quaternion_cas[3])
+    return biorbd.Rotation.toEulerAngles(biorbd.Quaternion.toMatrix(quaternion), "xyz").to_mx()
+
+
+def states_to_euler_rate(q, qdot):
+    # maximizing Lagrange twist velocity (indeterminate of quaternion to Euler of 2*pi*n)
+
+    def body_vel_to_euler_rate(w, e):
+        # xyz convention
+        _ = e[0]
+        th = e[1]
+        ps = e[2]
+        wx = w[0]
+        wy = w[1]
+        wz = w[2]
+        dph = cas.cos(ps) / cas.cos(th) * wx - cas.sin(ps) / cas.cos(th) * wy
+        dth = cas.sin(ps) * wx + cas.cos(ps) * wy
+        dps = -cas.cos(ps) * cas.sin(th) / cas.cos(th) * wx + cas.sin(th) * cas.sin(ps) / cas.cos(th) * wy + wz
+        return cas.vertcat(dph, dth, dps)
+
+    quaternion_cas = cas.vertcat(q[8], q[3], q[4], q[5])
+    quaternion_cas /= cas.norm_fro(quaternion_cas)
+
+    quaternion = biorbd.Quaternion(quaternion_cas[0], quaternion_cas[1], quaternion_cas[2], quaternion_cas[3])
+
+    omega = cas.vertcat(qdot[3:6])
     euler = biorbd.Rotation.toEulerAngles(biorbd.Quaternion.toMatrix(quaternion), "xyz").to_mx()
-    return cas.Function("states_to_euler", [states], [euler])
-
-
-def final_position_quaternion(pn: PenaltyNode, states_to_euler_func) -> cas.MX:
-    val = states_to_euler_func(pn.x[0])[0]
-    return val
+    return body_vel_to_euler_rate(omega, euler)
 
 
 def euler_to_quaternion(angle):

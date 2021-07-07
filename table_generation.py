@@ -72,7 +72,7 @@ class TableOCP:
 
                 trans_idx = []
                 rot_idx = []
-                for i in sol.ocp.nlp[0].mapping["q"].to_second.map_idx:
+                for i in sol.ocp.nlp[0].states["q"].mapping.to_second.map_idx:
                     if i is not None:
                         if sol.ocp.nlp[0].model.nameDof()[i].to_string()[-4:-1] == "Rot":
                             rot_idx += [i]

@@ -10,6 +10,7 @@ from bioptim import (
     BoundsList,
     QAndQDotBounds,
     InitialGuessList,
+    Node,
 )
 
 
@@ -44,16 +45,15 @@ def prepare_ocp(
 
     # Add objective functions
     objective_functions = ObjectiveList()
-    objective_functions.add(ObjectiveFcn.Lagrange.MINIMIZE_TORQUE, weight=weights[0])
-    objective_functions.add(ObjectiveFcn.Lagrange.MINIMIZE_STATE, weight=weights[1])
-    objective_functions.add(ObjectiveFcn.Lagrange.MINIMIZE_MUSCLES_CONTROL, weight=weights[2])
-    objective_functions.add(
-        ObjectiveFcn.Mayer.SUPERIMPOSE_MARKERS, first_marker_idx=0, second_marker_idx=1, weight=weights[3]
-    )
+    objective_functions.add(ObjectiveFcn.Lagrange.MINIMIZE_CONTROL, key="tau", weight=weights[0])
+    objective_functions.add(ObjectiveFcn.Lagrange.MINIMIZE_STATE, key="q", node=Node.ALL, weight=weights[1])
+    objective_functions.add(ObjectiveFcn.Lagrange.MINIMIZE_STATE, key="qdot", node=Node.ALL, weight=weights[1])
+    objective_functions.add(ObjectiveFcn.Lagrange.MINIMIZE_CONTROL, key="muscles", weight=weights[2])
+    objective_functions.add(ObjectiveFcn.Mayer.SUPERIMPOSE_MARKERS, first_marker=0, second_marker=1, weight=weights[3])
 
     # Dynamics
     dynamics = DynamicsList()
-    dynamics.add(DynamicsFcn.MUSCLE_ACTIVATIONS_AND_TORQUE_DRIVEN)
+    dynamics.add(DynamicsFcn.MUSCLE_DRIVEN, with_residual_torque=True, expand=False)
 
     # Path constraint
     x_bounds = BoundsList()

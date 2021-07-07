@@ -143,3 +143,6 @@ c_generated_code
 
 # idea
 .idea/
+
+# Outputs
+*.eps

@@ -90,7 +90,7 @@ def track_sum_contact_moments(pn: PenaltyNode) -> MX:
 
 
 # --- track moments ---
-def track_sum_contact_moments(pn: PenaltyNode, CoP: np.ndarray, M_ref: np.ndarray) -> MX:
+def track_sum_contact_moments_test(pn: PenaltyNode) -> MX:
     """
     Adds the objective that the mismatch between the
     sum of the contact moments and the reference ground reaction moments should be minimized.
@@ -99,8 +99,6 @@ def track_sum_contact_moments(pn: PenaltyNode, CoP: np.ndarray, M_ref: np.ndarra
     ----------
     pn: PenaltyNode
         The penalty node elements
-    CoP: np.ndarray
-        Array of the measured center of pressure trajectory
     M_ref: np.ndarray
         Array of the measured ground reaction moments
 
@@ -110,75 +108,25 @@ def track_sum_contact_moments(pn: PenaltyNode, CoP: np.ndarray, M_ref: np.ndarra
 
     """
 
-    # --- aliases ---
-    ns = pn.nlp.ns  # number of shooting points for the phase
-    nq = pn.nlp.model.nbQ()  # number of dof
-    cn = pn.nlp.model.contactNames()  # contact name for the model
-    val = []  # init
-
-    # --- init forces ---
-    forces = {}  # define dictionnary with all the contact point possible
-    labels_forces = [
-        "Heel_r_X",
-        "Heel_r_Y",
-        "Heel_r_Z",
-        "Meta_1_r_X",
-        "Meta_1_r_Y",
-        "Meta_1_r_Z",
-        "Meta_5_r_X",
-        "Meta_5_r_Y",
-        "Meta_5_r_Z",
-        "Toe_r_X",
-        "Toe_r_Y",
-        "Toe_r_Z",
-    ]
-    for label in labels_forces:
-        forces[label] = []  # init
-
-    for n in range(ns):
-        # --- compute contact point position ---
-        q = pn.x[n][:nq]
-        markers = pn.nlp.model.markers(q)  # compute markers positions
-        heel = markers[-4].to_mx() - CoP[:, n]
-        meta1 = markers[-3].to_mx() - CoP[:, n]
-        meta5 = markers[-2].to_mx() - CoP[:, n]
-        toe = markers[-1].to_mx() - CoP[:, n]
-
-        # --- compute forces ---
-        for f in forces:
-            forces[f].append(0.0)  # init: put 0 if the contact point is not activated
-        force = pn.nlp.contact_forces_func(pn.x[n], pn.u[n], pn.p)  # compute force
-        for i, c in enumerate(cn):
-            if c.to_string() in forces:  # check if contact point is activated
-                forces[c.to_string()][n] = force[i]  # put corresponding forces in dictionary
-
-        # --- tracking moments ---
-        Mx = (
-            heel[1] * forces["Heel_r_Z"][n]
-            + meta1[1] * forces["Meta_1_r_Z"][n]
-            + meta5[1] * forces["Meta_5_r_Z"][n]
-            + toe[1] * forces["Toe_r_Z"][n]
-        )
-        My = (
-            -heel[0] * forces["Heel_r_Z"][n]
-            - meta1[0] * forces["Meta_1_r_Z"][n]
-            - meta5[0] * forces["Meta_5_r_Z"][n]
-            - toe[0] * forces["Toe_r_Z"][n]
-        )
-        Mz = (
-            heel[0] * forces["Heel_r_Y"][n]
-            - heel[1] * forces["Heel_r_X"][n]
-            + meta1[0] * forces["Meta_1_r_Y"][n]
-            - meta1[1] * forces["Meta_1_r_X"][n]
-            + meta5[0] * forces["Meta_5_r_Y"][n]
-            - meta5[1] * forces["Meta_5_r_X"][n]
-            + toe[0] * forces["Toe_r_Y"][n]
-            - toe[1] * forces["Toe_r_X"][n]
-        )
-        val = vertcat(val, Mx)
-        val = vertcat(val, My)
-        val = vertcat(val, Mz)
-    return val
+    # --- states and controls --- #
+    states = vertcat(pn.nlp.states["q"].mx, pn.nlp.states["qdot"].mx)
+    controls = vertcat(pn.nlp.controls["tau"].mx, pn.nlp.controls["muscles"].mx)
+    # --- forces --- #
+    force_tp = pn.nlp.contact_forces_func(states, controls, pn.nlp.parameters.mx)
+    # --- positions --- #
+    markers_tp = pn.nlp.markers_func(states) # je ne sais plus si cette fonction existe
+    # --- cop --- #
+    # Mx = y*fz, My = -x*fz
+    # cop_x = -My/Fz, cop_y = Mx/Fz, cop_z = 0
+    cop = vertcat(-sum1(-markers_tp[0, -5:]*force_tp[2::3, :])/sum1(force_tp[2::3, :]),
+                  sum1(markers_tp[1, -5:]*force_tp[2::3, :])/sum1(force_tp[2::3, :]),
+                  0)
+    # --- moments --- #
+    markers = markers_tp - cop
+    moments = vertcat(sum1(markers[1, -5:]*force_tp[2::3, :]), # y*fz
+                      sum1(-markers[0, -5:]*force_tp[2::3, :]), # -x*fz
+                      sum1(markers[0, -5:]*force_tp[1::3, :]) - sum1(markers[1, -5:]*force_tp[0::3, :])) #x*fy - y*fx
+    return BiorbdInterface.mx_to_cx("moments", moments, pn.nlp.states["q"], pn.nlp.states["qdot"], pn.nlp.controls["tau"], pn.nlp.controls["muscles"])
 
 
 def prepare_ocp(

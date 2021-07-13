@@ -125,7 +125,7 @@ class Jumper5Phases:
     def _set_constraints(self):
         # Torque constrained to torqueMax
         for i in range(self.n_phases):
-            self.constraints.add(ConstraintFcn.TORQUE_MAX_FROM_ACTUATORS, phase=i, node=Node.ALL_SHOOTING, min_torque=self.tau_min)
+            self.constraints.add(ConstraintFcn.TORQUE_MAX_FROM_Q_AND_QDOT, phase=i, node=Node.ALL_SHOOTING, min_torque=self.tau_min)
 
         # Positivity of CoM_dot on z axis prior the take-off
         self.constraints.add(com_dot_z, phase=1, node=Node.END, min_bound=0, max_bound=np.inf)

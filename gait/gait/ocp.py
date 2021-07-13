@@ -1,5 +1,5 @@
 import numpy as np
-from casadi import vertcat, MX
+from casadi import vertcat, MX, sum1
 
 from bioptim import (
     OptimalControlProgram,
@@ -17,11 +17,12 @@ from bioptim import (
     PhaseTransitionList,
     PhaseTransitionFcn,
     PenaltyNode,
+    BiorbdInterface,
 )
 
 
 # --- force nul at last point ---
-def get_last_contact_force_null(pn: PenaltyNode, contact_name: str) -> MX:
+def force_contact(pn: PenaltyNode) -> MX:
     """
     Adds the constraint that the force at the specific contact point should be null
     at the last phase point.
@@ -31,8 +32,6 @@ def get_last_contact_force_null(pn: PenaltyNode, contact_name: str) -> MX:
     ----------
     pn: PenaltyNode
         The penalty node elements
-    contact_name: str
-        Name of the contacts that sould be null at the last node
 
     Returns
     -------
@@ -40,26 +39,14 @@ def get_last_contact_force_null(pn: PenaltyNode, contact_name: str) -> MX:
 
     """
 
-    force = pn.nlp.contact_forces_func(pn.x[-1], pn.u[-1], pn.p)
-
-    if contact_name == "all":
-        val = force
-    else:
-        cn = pn.nlp.model.contactNames()
-        val = []
-        for i, c in enumerate(cn):
-            if isinstance(contact_name, tuple):
-                for name in contact_name:
-                    if name in c.to_string():
-                        val = vertcat(val, force[i])
-            else:
-                if contact_name in c.to_string():
-                    val = vertcat(val, force[i])
-    return val
+    states = vertcat(pn.nlp.states["q"].mx, pn.nlp.states["qdot"].mx)
+    controls = vertcat(pn.nlp.controls["tau"].mx, pn.nlp.controls["muscles"].mx)
+    force = pn.nlp.contact_forces_func(states, controls, pn.nlp.parameters.mx)
+    return BiorbdInterface.mx_to_cx("grf", force, pn.nlp.states["q"], pn.nlp.states["qdot"], pn.nlp.controls["tau"], pn.nlp.controls["muscles"])
 
 
 # --- track grf ---
-def track_sum_contact_forces(pn: PenaltyNode, grf: np.ndarray) -> MX:
+def track_sum_contact_forces(pn: PenaltyNode) -> MX:
     """
     Adds the objective that the mismatch between the
     sum of the contact forces and the reference ground reaction forces should be minimized.
@@ -68,67 +55,38 @@ def track_sum_contact_forces(pn: PenaltyNode, grf: np.ndarray) -> MX:
     ----------
     pn: PenaltyNode
         The penalty node elements
-    grf: np.ndarray
-        Array of the measured ground reaction forces
 
     Returns
     -------
     The cost that should be minimize in the MX format.
     """
+    states = vertcat(pn.nlp.states["q"].mx, pn.nlp.states["qdot"].mx)
+    controls = vertcat(pn.nlp.controls["tau"].mx, pn.nlp.controls["muscles"].mx)
+    force_tp = pn.nlp.contact_forces_func(states, controls, pn.nlp.parameters.mx)
+    force = vertcat(sum1(force_tp[0::3, :]), sum1(force_tp[1::3, :]), sum1(force_tp[2::3, :]))
+    return BiorbdInterface.mx_to_cx("grf", force, pn.nlp.states["q"], pn.nlp.states["qdot"], pn.nlp.controls["tau"], pn.nlp.controls["muscles"])
 
-    ns = pn.nlp.ns  # number of shooting points for the phase
-    val = []  # init
-    cn = pn.nlp.model.contactNames()  # contact name for the model
 
-    # --- compute forces ---
-    forces = {}  # define dictionnary with all the contact point possible
-    labels_forces = [
-        "Heel_r_X",
-        "Heel_r_Y",
-        "Heel_r_Z",
-        "Meta_1_r_X",
-        "Meta_1_r_Y",
-        "Meta_1_r_Z",
-        "Meta_5_r_X",
-        "Meta_5_r_Y",
-        "Meta_5_r_Z",
-        "Toe_r_X",
-        "Toe_r_Y",
-        "Toe_r_Z",
-    ]
-    for label in labels_forces:
-        forces[label] = []  # init
+# --- track grf ---
+def track_sum_contact_moments(pn: PenaltyNode) -> MX:
+    """
+    Adds the objective that the mismatch between the
+    sum of the contact forces and the reference ground reaction forces should be minimized.
 
-    for n in range(ns):
-        for f in forces:
-            forces[f].append(0.0)  # init: put 0 if the contact point is not activated
+    Parameters
+    ----------
+    pn: PenaltyNode
+        The penalty node elements
 
-        if pn.u is None:
-            force = pn.nlp.contact_forces_func(pn.x[n], MX.zeros(0,0), pn.p)  # compute force
-        else:
-            force = pn.nlp.contact_forces_func(pn.x[n], pn.u[n], pn.p)  # compute force
-
-        for i, c in enumerate(cn):
-            if c.to_string() in forces:  # check if contact point is activated
-                forces[c.to_string()][n] = force[i]  # put corresponding forces in dictionnary
-
-        # --- tracking forces ---
-        val = vertcat(
-            val,
-            grf[0, pn.t[n]]
-            - (forces["Heel_r_X"][n] + forces["Meta_1_r_X"][n] + forces["Meta_5_r_X"][n] + forces["Toe_r_X"][n]),
-        )
-        val = vertcat(
-            val,
-            grf[1, pn.t[n]]
-            - (forces["Heel_r_Y"][n] + forces["Meta_1_r_Y"][n] + forces["Meta_5_r_Y"][n] + forces["Toe_r_Y"][n]),
-        )
-        val = vertcat(
-            val,
-            grf[2, pn.t[n]]
-            - (forces["Heel_r_Z"][n] + forces["Meta_1_r_Z"][n] + forces["Meta_5_r_Z"][n] + forces["Toe_r_Z"][n]),
-        )
-    return val
+    Returns
+    -------
+    The cost that should be minimize in the MX format.
+    """
+    states = vertcat(pn.nlp.states["q"].mx, pn.nlp.states["qdot"].mx)
+    controls = vertcat(pn.nlp.controls["tau"].mx, pn.nlp.controls["muscles"].mx)
+    force_tp = pn.nlp.contact_forces_func(states, controls, pn.nlp.parameters.mx)
+    force = vertcat(sum1(force_tp[0::3, :]), sum1(force_tp[1::3, :]), sum1(force_tp[2::3, :]))
+    return BiorbdInterface.mx_to_cx("grf", force, pn.nlp.states["q"], pn.nlp.states["qdot"], pn.nlp.controls["tau"], pn.nlp.controls["muscles"])
 
 
 # --- track moments ---
@@ -192,7 +150,7 @@ def track_sum_contact_moments(pn: PenaltyNode, CoP: np.ndarray, M_ref: np.ndarra
         force = pn.nlp.contact_forces_func(pn.x[n], pn.u[n], pn.p)  # compute force
         for i, c in enumerate(cn):
             if c.to_string() in forces:  # check if contact point is activated
-                forces[c.to_string()][n] = force[i]  # put corresponding forces in dictionnary
+                forces[c.to_string()][n] = force[i]  # put corresponding forces in dictionary
 
         # --- tracking moments ---
         Mx = (
@@ -217,9 +175,9 @@ def track_sum_contact_moments(pn: PenaltyNode, CoP: np.ndarray, M_ref: np.ndarra
             + toe[0] * forces["Toe_r_Y"][n]
             - toe[1] * forces["Toe_r_X"][n]
         )
-        val = vertcat(val, M_ref[0, pn.t[n]] - Mx)
-        val = vertcat(val, M_ref[1, pn.t[n]] - My)
-        val = vertcat(val, M_ref[2, pn.t[n]] - Mz)
+        val = vertcat(val, Mx)
+        val = vertcat(val, My)
+        val = vertcat(val, Mz)
     return val
 
 
@@ -289,61 +247,55 @@ def prepare_ocp(
     markers_foot = [19, 20, 21, 22, 23, 24, 25]
     objective_functions = ObjectiveList()
     for p in range(nb_phases):
-        objective_functions.add(
-            ObjectiveFcn.Lagrange.TRACK_STATE, weight=1, index=range(nb_q), target=q_ref[p], phase=p, quadratic=True
-        )
+        objective_functions.add(ObjectiveFcn.Lagrange.TRACK_STATE, key="q", node=Node.ALL, target=q_ref[p], phase=p)
         objective_functions.add(
             ObjectiveFcn.Lagrange.TRACK_MARKERS,
+            node=Node.ALL,
             weight=1000,
-            index=markers_anat,
+            marker_index=markers_anat,
             target=markers_ref[p][:, markers_anat, :],
             phase=p,
-            quadratic=True,
         )
         objective_functions.add(
             ObjectiveFcn.Lagrange.TRACK_MARKERS,
+            node=Node.ALL,
             weight=100000,
-            index=markers_pelvis,
+            marker_index=markers_pelvis,
             target=markers_ref[p][:, markers_pelvis, :],
             phase=p,
-            quadratic=True,
         )
         objective_functions.add(
             ObjectiveFcn.Lagrange.TRACK_MARKERS,
+            node=Node.ALL,
             weight=100000,
-            index=markers_foot,
+            marker_index=markers_foot,
             target=markers_ref[p][:, markers_foot, :],
             phase=p,
-            quadratic=True,
         )
         objective_functions.add(
             ObjectiveFcn.Lagrange.TRACK_MARKERS,
+            node=Node.ALL,
             weight=100,
-            index=markers_tissus,
+            marker_index=markers_tissus,
             target=markers_ref[p][:, markers_tissus, :],
             phase=p,
-            quadratic=True,
         )
+        objective_functions.add(ObjectiveFcn.Lagrange.MINIMIZE_CONTROL, key="tau", weight=0.001, index=10, phase=p)
         objective_functions.add(
-            ObjectiveFcn.Lagrange.MINIMIZE_TORQUE, weight=0.001, index=(10), phase=p, quadratic=True
+            ObjectiveFcn.Lagrange.MINIMIZE_CONTROL, key="tau", weight=1, index=(6, 7, 8, 9, 11), phase=p
         )
-        objective_functions.add(
-            ObjectiveFcn.Lagrange.MINIMIZE_TORQUE, weight=1, index=(6, 7, 8, 9, 11), phase=p, quadratic=True
-        )
-        objective_functions.add(ObjectiveFcn.Lagrange.MINIMIZE_MUSCLES_CONTROL, weight=10, phase=p, quadratic=True)
-        objective_functions.add(ObjectiveFcn.Lagrange.MINIMIZE_TORQUE_DERIVATIVE, weight=0.1, phase=p, quadratic=True)
+        objective_functions.add(ObjectiveFcn.Lagrange.MINIMIZE_CONTROL, key="muscles", weight=10, phase=p)
+        objective_functions.add(ObjectiveFcn.Lagrange.MINIMIZE_CONTROL, key="tau", derivative=True, weight=0.1, phase=p)
 
     # --- track contact forces for the stance phase ---
     for p in range(nb_phases - 1):
         objective_functions.add(
             track_sum_contact_forces,  # track contact forces
-            grf=grf_ref[p],
+            target=grf_ref[p],
             custom_type=ObjectiveFcn.Lagrange,
             node=Node.ALL,
             weight=0.1,
-            quadratic=True,
             phase=p,
-            get_all_nodes_at_once=True,
         )
 
     for p in range(1, nb_phases - 1):
@@ -356,30 +308,29 @@ def prepare_ocp(
             weight=0.01,
             quadratic=True,
             phase=p,
-            get_all_nodes_at_once=True,
         )
 
     # Dynamics
     dynamics = DynamicsList()
     for p in range(nb_phases - 1):
-        dynamics.add(DynamicsFcn.MUSCLE_ACTIVATIONS_AND_TORQUE_DRIVEN_WITH_CONTACT, phase=p)
-    dynamics.add(DynamicsFcn.MUSCLE_ACTIVATIONS_AND_TORQUE_DRIVEN, phase=3)
+        dynamics.add(DynamicsFcn.MUSCLE_DRIVEN, phase=p, with_contact=True, with_residual_torque=True, expand=False)
+    dynamics.add(DynamicsFcn.MUSCLE_DRIVEN, phase=3, with_residual_torque=True, expand=False)
 
     # Constraints
     constraints = ConstraintList()
     constraints.add(  # null speed for the first phase --> non sliding contact point
         ConstraintFcn.TRACK_MARKERS_VELOCITY,
         node=Node.START,
-        index=26,
+        marker_index=26,
         phase=0,
     )
     # --- phase flatfoot ---
     constraints.add(  # positive vertical forces
-        ConstraintFcn.CONTACT_FORCE,
+        ConstraintFcn.TRACK_CONTACT_FORCES,
         min_bound=min_bound,
         max_bound=max_bound,
         node=Node.ALL,
-        contact_force_idx=(1, 2, 5),
+        contact_index=(1, 2, 5),
         phase=1,
     )
     constraints.add(  # non slipping y
@@ -408,20 +359,19 @@ def prepare_ocp(
     )
 
     constraints.add(  # forces heel at zeros at the end of the phase
-        get_last_contact_force_null,
+        force_contact,
         node=Node.ALL,
-        contact_name="Heel_r",
+        index=[i for i, name in enumerate(biorbd_model[1].contactNames()) if "Heel_r" in name.to_string()],
         phase=1,
-        get_all_nodes_at_once=True,
     )
 
     # --- phase forefoot ---
     constraints.add(  # positive vertical forces
-        ConstraintFcn.CONTACT_FORCE,
+        ConstraintFcn.TRACK_CONTACT_FORCES,
         min_bound=min_bound,
         max_bound=max_bound,
         node=Node.ALL,
-        contact_force_idx=(2, 4, 5),
+        contact_index=(2, 4, 5),
         phase=2,
     )
     constraints.add(
@@ -441,11 +391,10 @@ def prepare_ocp(
         phase=2,
     )
     constraints.add(
-        get_last_contact_force_null,
+        force_contact,
         node=Node.ALL,
-        contact_name="all",
+        index=[i for i, name in enumerate(biorbd_model[1].contactNames())],
         phase=2,
-        get_all_nodes_at_once=True,
     )
 
     # Phase Transitions

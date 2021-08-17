@@ -313,8 +313,8 @@ def prepare_ocp(
     # Dynamics
     dynamics = DynamicsList()
     for p in range(nb_phases - 1):
-        dynamics.add(DynamicsFcn.MUSCLE_DRIVEN, phase=p, with_contact=True, with_residual_torque=True, expand=False)
-    dynamics.add(DynamicsFcn.MUSCLE_DRIVEN, phase=3, with_residual_torque=True, expand=False)
+        dynamics.add(DynamicsFcn.MUSCLE_DRIVEN, phase=p, with_contact=True, with_torque=True, expand=False)
+    dynamics.add(DynamicsFcn.MUSCLE_DRIVEN, phase=3, with_torque=True, expand=False)
 
     # Constraints
     constraints = ConstraintList()

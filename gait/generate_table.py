@@ -1,6 +1,6 @@
 from time import time
 
-import biorbd
+import biorbd_casadi as biorbd
 from bioptim import Solver
 
 from .gait.load_experimental_data import LoadData

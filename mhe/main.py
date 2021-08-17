@@ -6,7 +6,7 @@ Model joint angles are tracked to match with reference ones, muscle activations 
 from time import time
 from math import ceil
 
-import biorbd
+import biorbd_casadi as biorbd
 import numpy as np
 import scipy.io as sio
 import bioviz

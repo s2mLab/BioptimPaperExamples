@@ -10,7 +10,7 @@ import pickle
 import seaborn
 import matplotlib.ticker as ticker
 import matplotlib.pyplot as plt
-import biorbd
+import biorbd_casadi as biorbd
 import numpy as np
 from bioptim import (
     BoundsList,

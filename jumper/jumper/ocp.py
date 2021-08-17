@@ -1,5 +1,5 @@
 import numpy as np
-import biorbd
+import biorbd_casadi as biorbd
 from bioptim import (
     PenaltyNode,
     Node,

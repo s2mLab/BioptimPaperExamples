@@ -1,7 +1,7 @@
 from time import time
 
 import numpy as np
-import biorbd
+import biorbd_casadi as biorbd
 from bioptim import Solver
 
 from .pointing.ocp import prepare_ocp

@@ -1,6 +1,6 @@
 from time import time
 
-import biorbd
+import biorbd_casadi as biorbd
 import numpy as np
 from bioptim import (
     Solution,

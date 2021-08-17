@@ -6,7 +6,7 @@ Please note that using show_meshes=True in the animator may be long due to the c
 mesh points.
 """
 
-import biorbd
+import biorbd_casadi as biorbd
 import numpy as np
 from bioptim import Solver, Shooting
 
@@ -31,7 +31,7 @@ def compute_error_single_shooting(sol, duration):
     rot_idx = np.array(rot_idx)
     trans_idx = np.array(trans_idx)
 
-    sol_int = sol.integrate(shooting_type=Shooting.SINGLE_CONTINUOUS, merge_phases=True, keepdims=True)
+    sol_int = sol.integrate(shooting_type=Shooting.SINGLE_CONTINUOUS, merge_phases=True, keep_intermediate_points=False)
     sn_1s = int(sol_int.ns[0] / sol_int.phase_time[-1] * duration)  # shooting node at {duration} second
     if len(rot_idx) > 0:
         single_shoot_error_r = (

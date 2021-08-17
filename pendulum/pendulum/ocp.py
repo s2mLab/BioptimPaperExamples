@@ -1,5 +1,5 @@
 import casadi as cas
-import biorbd
+import biorbd_casadi as biorbd
 import numpy as np
 from bioptim import (
     OptimalControlProgram,

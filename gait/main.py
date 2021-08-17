@@ -5,7 +5,7 @@ Experimental data (markers trajectories, ground reaction forces and moments) are
 from time import time
 
 import numpy as np
-import biorbd
+import biorbd_casadi as biorbd
 from bioptim import Solver, Shooting
 
 from gait.load_experimental_data import LoadData

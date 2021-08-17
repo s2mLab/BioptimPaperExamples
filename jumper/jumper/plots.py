@@ -1,5 +1,5 @@
 import numpy as np
-import biorbd
+import biorbd_casadi as biorbd
 from bioptim import PlotType
 
 from .ocp import Jumper5Phases
@@ -35,7 +35,7 @@ def add_jumper_plots(jumper: Jumper5Phases):
         nlp = jumper.ocp.nlp[i]
         # Plot Torque Bounds
         jumper.ocp.add_plot(
-            "tau_controls", lambda x, u, p: torque_bounds(x, 0, nlp), phase=i, plot_type=PlotType.STEP, color="g", linestyle="-."
+            "tau_controls", lambda t, x, u, p: torque_bounds(x, 0, nlp), phase=i, plot_type=PlotType.STEP, color="g", linestyle="-."
         )
         jumper.ocp.add_plot(
             "tau_controls",
@@ -47,29 +47,29 @@ def add_jumper_plots(jumper: Jumper5Phases):
         )
         jumper.ocp.add_plot(
             "tau_controls",
-            lambda x, u, p: torque_bounds(x, 0, nlp, minimal_tau=jumper.tau_min),
+            lambda t, x, u, p: torque_bounds(x, 0, nlp, minimal_tau=jumper.tau_min),
             phase=i,
             plot_type=PlotType.STEP,
             color="g",
         )
         jumper.ocp.add_plot(
             "tau_controls",
-            lambda x, u, p: -torque_bounds(x, 1, nlp, minimal_tau=jumper.tau_min),
+            lambda t, x, u, p: -torque_bounds(x, 1, nlp, minimal_tau=jumper.tau_min),
             phase=i,
             plot_type=PlotType.STEP,
             color="g",
         )
         jumper.ocp.add_plot(
-            "tau_controls", lambda x, u, p: np.zeros((4, len(x[0]))), phase=i, plot_type=PlotType.STEP, color="k"
+            "tau_controls", lambda t, x, u, p: np.zeros((4, len(x[0]))), phase=i, plot_type=PlotType.STEP, color="k"
         )
 
         # Plot center of mass pos and speed
         jumper.ocp.add_plot(
-            "Center of mass height", lambda x, u, p: com_height(x, nlp), phase=i, plot_type=PlotType.PLOT
+            "Center of mass height", lambda t, x, u, p: com_height(x, nlp), phase=i, plot_type=PlotType.PLOT
         )
         jumper.ocp.add_plot(
             "Center of mass upward velocity",
-            lambda x, u, p: com_upward_velocity(x, nlp),
+            lambda t, x, u, p: com_upward_velocity(x, nlp),
             phase=i,
             plot_type=PlotType.PLOT,
         )
@@ -77,25 +77,25 @@ def add_jumper_plots(jumper: Jumper5Phases):
         # Plot q and nb_qdot ranges
         jumper.ocp.add_plot(
             "q_states",
-            lambda x, u, p: np.repeat(jumper.x_bounds[i].min[: jumper.n_q, 1][:, np.newaxis], x.shape[1], axis=1),
+            lambda t, x, u, p: np.repeat(jumper.x_bounds[i].min[: jumper.n_q, 1][:, np.newaxis], x.shape[1], axis=1),
             phase=i,
             plot_type=PlotType.PLOT,
         )
         jumper.ocp.add_plot(
             "q_states",
-            lambda x, u, p: np.repeat(jumper.x_bounds[i].max[: jumper.n_q, 1][:, np.newaxis], x.shape[1], axis=1),
+            lambda t, x, u, p: np.repeat(jumper.x_bounds[i].max[: jumper.n_q, 1][:, np.newaxis], x.shape[1], axis=1),
             phase=i,
             plot_type=PlotType.PLOT,
         )
         jumper.ocp.add_plot(
             "qdot_states",
-            lambda x, u, p: np.repeat(jumper.x_bounds[i].min[jumper.n_q :, 1][:, np.newaxis], x.shape[1], axis=1),
+            lambda t, x, u, p: np.repeat(jumper.x_bounds[i].min[jumper.n_q :, 1][:, np.newaxis], x.shape[1], axis=1),
             phase=i,
             plot_type=PlotType.PLOT,
         )
         jumper.ocp.add_plot(
             "qdot_states",
-            lambda x, u, p: np.repeat(jumper.x_bounds[i].max[jumper.n_q :, 1][:, np.newaxis], x.shape[1], axis=1),
+            lambda t, x, u, p: np.repeat(jumper.x_bounds[i].max[jumper.n_q :, 1][:, np.newaxis], x.shape[1], axis=1),
             phase=i,
             plot_type=PlotType.PLOT,
         )

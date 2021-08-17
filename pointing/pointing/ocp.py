@@ -1,4 +1,4 @@
-import biorbd
+import biorbd_casadi as biorbd
 import numpy as np
 
 from bioptim import (
@@ -53,7 +53,7 @@ def prepare_ocp(
 
     # Dynamics
     dynamics = DynamicsList()
-    dynamics.add(DynamicsFcn.MUSCLE_DRIVEN, with_residual_torque=True, expand=False)
+    dynamics.add(DynamicsFcn.MUSCLE_DRIVEN, with_torque=True, expand=False)
 
     # Path constraint
     x_bounds = BoundsList()

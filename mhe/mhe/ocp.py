@@ -1,6 +1,6 @@
 import pickle
 
-import biorbd
+import biorbd_casadi as biorbd
 import numpy as np
 from casadi import MX, Function
 from bioptim import (

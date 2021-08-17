@@ -1,6 +1,6 @@
 import numpy as np
-from casadi import vertcat, MX, sum1
-
+from casadi import  vertcat, MX, sum1
+import biorbd_casadi
 from bioptim import (
     OptimalControlProgram,
     DynamicsList,
@@ -19,6 +19,11 @@ from bioptim import (
     PenaltyNode,
     BiorbdInterface,
 )
+
+
+def get_contact_index(pn, tag):
+    force_names = [s.to_string() for s in pn.nlp.model.contactNames()]
+    return [i for i, t in enumerate([s[-1] == tag for s in force_names]) if t]
 
 
 # --- force nul at last point ---
@@ -63,12 +68,15 @@ def track_sum_contact_forces(pn: PenaltyNode) -> MX:
     states = vertcat(pn.nlp.states["q"].mx, pn.nlp.states["qdot"].mx)
     controls = vertcat(pn.nlp.controls["tau"].mx, pn.nlp.controls["muscles"].mx)
     force_tp = pn.nlp.contact_forces_func(states, controls, pn.nlp.parameters.mx)
-    force = vertcat(sum1(force_tp[0::3, :]), sum1(force_tp[1::3, :]), sum1(force_tp[2::3, :]))
+
+    force = vertcat(sum1(force_tp[get_contact_index(pn, "X"), :]),
+                    sum1(force_tp[get_contact_index(pn, "Y"), :]),
+                    sum1(force_tp[get_contact_index(pn, "Z"), :]))
     return BiorbdInterface.mx_to_cx("grf", force, pn.nlp.states["q"], pn.nlp.states["qdot"], pn.nlp.controls["tau"], pn.nlp.controls["muscles"])
 
 
 # --- track grf ---
-def track_sum_contact_moments(pn: PenaltyNode) -> MX:
+def track_sum_contact_moments(pn: PenaltyNode, marker_foot: list) -> MX:
     """
     Adds the objective that the mismatch between the
     sum of the contact forces and the reference ground reaction forces should be minimized.
@@ -85,48 +93,23 @@ def track_sum_contact_moments(pn: PenaltyNode) -> MX:
     states = vertcat(pn.nlp.states["q"].mx, pn.nlp.states["qdot"].mx)
     controls = vertcat(pn.nlp.controls["tau"].mx, pn.nlp.controls["muscles"].mx)
     force_tp = pn.nlp.contact_forces_func(states, controls, pn.nlp.parameters.mx)
-    force = vertcat(sum1(force_tp[0::3, :]), sum1(force_tp[1::3, :]), sum1(force_tp[2::3, :]))
-    return BiorbdInterface.mx_to_cx("grf", force, pn.nlp.states["q"], pn.nlp.states["qdot"], pn.nlp.controls["tau"], pn.nlp.controls["muscles"])
+    force_x = force_tp[get_contact_index(pn, "X"), :]
+    force_y = force_tp[get_contact_index(pn, "Y"), :]
+    force_z = force_tp[get_contact_index(pn, "Z"), :]
 
-
-# --- track moments ---
-def track_sum_contact_moments_test(pn: PenaltyNode) -> MX:
-    """
-    Adds the objective that the mismatch between the
-    sum of the contact moments and the reference ground reaction moments should be minimized.
-
-    Parameters
-    ----------
-    pn: PenaltyNode
-        The penalty node elements
-    M_ref: np.ndarray
-        Array of the measured ground reaction moments
-
-    Returns
-    -------
-    The cost that should be minimize in the MX format.
-
-    """
-
-    # --- states and controls --- #
-    states = vertcat(pn.nlp.states["q"].mx, pn.nlp.states["qdot"].mx)
-    controls = vertcat(pn.nlp.controls["tau"].mx, pn.nlp.controls["muscles"].mx)
-    # --- forces --- #
-    force_tp = pn.nlp.contact_forces_func(states, controls, pn.nlp.parameters.mx)
-    # --- positions --- #
-    markers_tp = pn.nlp.markers_func(states) # je ne sais plus si cette fonction existe
-    # --- cop --- #
-    # Mx = y*fz, My = -x*fz
-    # cop_x = -My/Fz, cop_y = Mx/Fz, cop_z = 0
-    cop = vertcat(-sum1(-markers_tp[0, -5:]*force_tp[2::3, :])/sum1(force_tp[2::3, :]),
-                  sum1(markers_tp[1, -5:]*force_tp[2::3, :])/sum1(force_tp[2::3, :]),
+    q = pn.nlp.states["q"].mx
+    markers = biorbd_casadi.to_casadi_func("markers", pn.nlp.model.markers, pn.nlp.states["q"].mx)(q)
+    cop = vertcat(sum1(vertcat(*[-markers[0, m] * force_z for m in marker_foot])) / sum1(force_z),
+                  sum1(vertcat(*[-markers[1, m] * force_z for m in marker_foot])) / sum1(force_z),
                   0)
+
     # --- moments --- #
-    markers = markers_tp - cop
-    moments = vertcat(sum1(markers[1, -5:]*force_tp[2::3, :]), # y*fz
-                      sum1(-markers[0, -5:]*force_tp[2::3, :]), # -x*fz
-                      sum1(markers[0, -5:]*force_tp[1::3, :]) - sum1(markers[1, -5:]*force_tp[0::3, :])) #x*fy - y*fx
-    return BiorbdInterface.mx_to_cx("moments", moments, pn.nlp.states["q"], pn.nlp.states["qdot"], pn.nlp.controls["tau"], pn.nlp.controls["muscles"])
+    markers_cop = markers - cop
+    moments = vertcat(sum1(vertcat(*[markers_cop[1, m] * force_z for m in marker_foot])),  # y*fz
+                      sum1(vertcat(*[-markers_cop[0, m] * force_z for m in marker_foot])),  # -x*fz
+                      sum1(vertcat(*[markers_cop[0, m] * force_y for m in marker_foot])) - sum1(vertcat(*[markers_cop[1, m] * force_x for m in marker_foot])))  # x*fy - y*fx
+    return BiorbdInterface.mx_to_cx("moments", moments, pn.nlp.states["q"], pn.nlp.states["qdot"],
+                                    pn.nlp.controls["tau"], pn.nlp.controls["muscles"])
 
 
 def prepare_ocp(
@@ -249,13 +232,13 @@ def prepare_ocp(
     for p in range(1, nb_phases - 1):
         objective_functions.add(
             track_sum_contact_moments,
-            CoP=CoP[p],
-            M_ref=M_ref[p],
+            target=M_ref[p],
             custom_type=ObjectiveFcn.Lagrange,
             node=Node.ALL,
             weight=0.01,
             quadratic=True,
             phase=p,
+            marker_foot=[25, 26, 27, 28, 29]
         )
 
     # Dynamics

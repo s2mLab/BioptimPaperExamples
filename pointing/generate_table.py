@@ -53,5 +53,5 @@ def generate_table(out):
     out.solver.append(out.Solver("Acados"))
     out.solver[1].n_iteration = sol.iterations
     out.solver[1].cost = sol.cost
-    out.solver[1].convergence_time = sol.time_to_optimize
+    out.solver[1].convergence_time = sol.solver_time_to_optimize
     out.solver[1].compute_error_single_shooting(sol, 1)

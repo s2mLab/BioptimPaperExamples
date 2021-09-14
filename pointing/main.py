@@ -78,7 +78,7 @@ if __name__ == "__main__":
     ss_err_t, ss_err_r = compute_error_single_shooting(sol, 1)
     print("*********************************************")
     print(f"Problem solved with {solver.value}")
-    print(f"Solving time : {sol.time_to_optimize}s")
+    print(f"Solving time : {sol.solver_time_to_optimize}s")
     print(f"Single shooting error at {single_shooting_duration}s in translation (mm)= {ss_err_t}")
     print(f"Single shooting error at {single_shooting_duration}s in rotation (°)= {ss_err_r}")
     # result.graphs()

@@ -30,7 +30,7 @@ if __name__ == "__main__":
 
     # --- Prepare and solve MHE --- #
     use_noise = True  # True to add noise on reference joint angles
-    q_noise = 5
+    q_noise = 3
     t = 8
     ns = 800
     ns_mhe = 7

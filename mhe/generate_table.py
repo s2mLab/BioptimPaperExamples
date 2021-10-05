@@ -17,8 +17,9 @@ def generate_table(out):
     biorbd_model = biorbd.Model(model_path)
 
     # --- Prepare and solve MHE --- #
+    np.random.seed(42)
     use_noise = True  # True to add noise on reference joint angles
-    q_noise = 5
+    q_noise = 3
     t = 8
     ns = 800
     ns_mhe = 7

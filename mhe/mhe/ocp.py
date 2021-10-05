@@ -96,7 +96,7 @@ def generate_noise(biorbd_model, q: np.array, q_noise_lvl: float):
     n_q = biorbd_model.nbQ()
     q_noise = np.ndarray((n_q, q.shape[1]))
     for i in range(n_q):
-        noise = np.random.normal(0, abs(q_noise_lvl * q[i, :] / 100))
+        noise = np.random.normal(0, abs(q_noise_lvl * np.random.rand(1, q.shape[1]) / 100))
         q_noise[i, :] = q[i, :] + noise
     return q_noise
 

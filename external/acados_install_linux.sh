@@ -9,11 +9,19 @@ if [ ! -f acados/CMakeLists.txt ]; then
   git submodule update --recursive --init
 fi
 
+# Check if there are a number of CPUs for Acados multiprocessing
+ARG1=${1:NB_CPU}
+if [ -z "$ARG1" ]; then
+  $ARG1=$CPU_COUNT
+  echo " Argument 2 (NB_CPU) not provided, falling back on maximum number of CPUs."
+  echo ""
+fi
+
 # Check if everything required by the script is present
 echo "Processing arguments"
 echo ""
-ARG1=${1:-$CONDA_PREFIX}
-if [ -z "$ARG1" ]; then
+ARG2=${2:-$CONDA_PREFIX}
+if [ -z "$ARG2" ]; then
   echo "  Argument 1 (CMAKE_INSTALL_PREFIX) is missing and you are not using conda."
   echo "  Please provide a path for installation"
   exit 1
@@ -25,10 +33,15 @@ if [ -z "$1" ]; then
   echo ""
 fi
 
-ARG2=${2:-X64_AUTOMATIC}
-if [ -z "$2" ]; then
+ARG3=${3:-X64_AUTOMATIC}
+if [ -z "$3" ]; then
   echo "  Argument 2 (BLASFEO_TARGET) not provided, falling back on X64_AUTOMATIC"
   echo ""
+fi
+
+# Preparing environment
+if [ "$CONDA_PREFIX" ]; then
+  conda install git cmake -cconda-forge -y
 fi
 
 # Move to the build folder
@@ -40,12 +53,13 @@ cd acados/build
 
 # Run cmake
 cmake . .. \
-  -DACADOS_INSTALL_DIR="$ARG1"\
+  -DACADOS_INSTALL_DIR="$ARG2"\
   -DACADOS_PYTHON=ON\
   -DACADOS_WITH_QPOASES=ON\
-  -DBLASFEO_TARGET="$ARG2"\
-  -DCMAKE_INSTALL_PREFIX="$ARG1"\
-  -DACADOS_WITH_OPENMP=ON  
+  -DBLASFEO_TARGET="$ARG3"\
+  -DCMAKE_INSTALL_PREFIX="$ARG2"\
+  -DACADOS_WITH_OPENMP=ON\
+  -DACADOS_NUM_THREADS="$ARG1"
 make install -j$CPU_COUNT
 
 
@@ -62,27 +76,39 @@ REPLACE_PYTHON_REQUIRED_BY="# python_requires"
 TO_REPLACE_CASADI_DEP="'casadi"
 REPLACE_CASADI_DEP_BY="# 'casadi"
 
+# Add the simulink file
+TO_REPLACE_JSON_DEP="'acados_sim_layout.json',"
+REPLACE_JSON_DEP_BY="'acados_sim_layout.json',\n       'simulink_default_opts.json',"
+
 # Modify relative path of acados_template is install doesn't have the 
 # same structure as the source folder
 TO_REPLACE_PATH="'..\/..\/..\/'"
 REPLACE_PATH_BY="'..\/..\/..\/..\/'"
 
+# Changed simulink path
+TO_REPLACE_JSON="json_path = os.path.join(acados_path, 'interfaces\/acados_template\/acados_template')"
+REPLACE_JSON_BY="import site\n            acados_path = site.getsitepackages()\n            json_path = os.path.join(acados_path[0], 'acados_template')"
+
 # Perform the modifications
 sed -i "s/$TO_REPLACE_PYTHON_REQUIRED/$REPLACE_PYTHON_REQUIRED_BY/" setup.py
 sed -i "s/$TO_REPLACE_CASADI_DEP/$REPLACE_CASADI_DEP_BY/" setup.py
+sed -i "s/$TO_REPLACE_JSON_DEP/$REPLACE_JSON_DEP_BY/" setup.py
 sed -i "s/$TO_REPLACE_PATH/$REPLACE_PATH_BY/" acados_template/utils.py
+sed -i "s/$TO_REPLACE_JSON/$REPLACE_JSON_BY/" acados_template/acados_ocp_solver.py
 
 # Install the Python interface
 pip install .
-
-# Undo the modifications to the files (so it is not pick up by Git)
-sed -i "s/$REPLACE_PYTHON_REQUIRED_BY/$TO_REPLACE_PYTHON_REQUIRED/" setup.py
-sed -i "s/$REPLACE_CASADI_DEP_BY/$TO_REPLACE_CASADI_DEP/" setup.py
-sed -i "s/$REPLACE_PATH_BY/$TO_REPLACE_PATH/" acados_template/utils.py
+cd ../..
 
 # Automatically download Tera 
-TERA_INSTALL_SCRIPT=$(pwd)/../../ci/linux/install_t_renderer.sh
-pushd $ARG1;
+TERA_INSTALL_SCRIPT=$(pwd)/ci/linux/install_t_renderer.sh
+pushd $ARG2;
   chmod +x $TERA_INSTALL_SCRIPT;
-  exec $TERA_INSTALL_SCRIPT;
+  $TERA_INSTALL_SCRIPT;
 popd;
+
+# Undo the modifications to the files (so it is not picked up by Git)
+git reset --hard
+
+
+

@@ -39,7 +39,7 @@ def add_jumper_plots(jumper: Jumper5Phases):
         )
         jumper.ocp.add_plot(
             "tau_controls",
-            lambda x, u, p: -torque_bounds(x, 1, nlp),
+            lambda t, x, u, p: -torque_bounds(x, 1, nlp),
             phase=i,
             plot_type=PlotType.STEP,
             color="g",

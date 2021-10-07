@@ -2,7 +2,7 @@ from time import time
 
 from bioptim import ControlType
 
-from JumperOcp import JumperOcp, Jumper
+from .JumperOcp import JumperOcp, Jumper
 
 
 def generate_table(out):
@@ -11,7 +11,7 @@ def generate_table(out):
     jumper = JumperOcp(jumper=jumper_model, control_type=ControlType.CONSTANT, n_phases=5)
 
     tic = time()
-    sol = jumper.solve(limit_memory_max_iter=2, exact_max_iter=2, force_no_graph=True, linear_solver="ma57")
+    sol = jumper.solve(limit_memory_max_iter=200, exact_max_iter=1000, force_no_graph=True, linear_solver="ma57")
     toc = time() - tic
     sol_merged = sol.merge_phases()
 
@@ -23,6 +23,3 @@ def generate_table(out):
     out.solver[0].cost = sol.cost
     out.solver[0].convergence_time = toc
     out.solver[0].compute_error_single_shooting(sol, 1)
-
-out = []
-generate_table(out)

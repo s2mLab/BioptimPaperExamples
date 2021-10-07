@@ -333,7 +333,8 @@ class JumperOcp:
                     solver_options={
                         "hessian_approximation": "limited-memory",
                         "max_iter": limit_memory_max_iter,
-                        "linear_solver": linear_solver
+                        "linear_solver": linear_solver,
+                        "print_level": 0,
                     },
                 )
             if limit_memory_max_iter > 0 and exact_max_iter > 0:
@@ -345,7 +346,8 @@ class JumperOcp:
                         "hessian_approximation": "exact",
                         "max_iter": exact_max_iter,
                         "warm_start_init_point": "yes",
-                        "linear_solver": "ma57",
+                        "linear_solver": linear_solver,
+                        "print_level": 0,
                     },
                 )
 

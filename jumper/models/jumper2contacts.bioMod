@@ -1,48 +1,35 @@
 version   4
 
+// General information
+// Model from Sylvain Gaudet (Scores + Yeadon + Torques on kinetic ergometer)
+
 // Informations about Pelvis segment
     // Segment
     segment    Pelvis
+        RT -0.1 0 0 xyz 0 0 0.8
         translations yz
         rotations    x
-        rangesQ -2.5 2.5
-                -1 3 
+        rangesQ
+                -2.5 2.5
+                -1 3
                 -3 3
-        rangesQdot -20 20 
-                   -20 20 
-                   -15 15
-        mass    9.03529
+        rangesQdot
+                    -20 20
+                    -20 20
+                    -15 15
+        mass    11.58000
         inertia
-            0.04664    0.00000    0.00000
-            0.00000    0.07178    0.00000
-            0.00000    0.00000    0.06989
-        com     0         0    0.0885
-        mesh   -0.1038    0.0821         0
-        mesh    0.1038    0.0850         0
-        mesh    0.1435    0.0072    0.0351
-        mesh    0.0514   -0.0833   -0.0020
-        mesh   -0.0514   -0.0838    0.0020
-        mesh   -0.1432   -0.0024    0.0344
-        mesh   -0.1038    0.0821         0
+            0.0692000000    0.0000000000    0.0000000000
+            0.0000000000    0.1254000000    0.0000000000
+            0.0000000000    0.0000000000    0.1123000000
+        com     0.000000000    0.000000000    0.104400000
+        meshfile mesh/pelvis.stl
     endsegment
-    
 
     // Actuator
         actuator    Pelvis
             type    Constant
             dof    TransY
-            direction    positive
-            Tmax    0.000000
-        endactuator
-        actuator    Pelvis
-            type    Constant
-            dof    TransZ
-            direction    positive
-            Tmax    0.000000
-        endactuator
-        actuator    Pelvis
-            type    Constant
-            dof    RotX
             direction    positive
             Tmax    0.000000
         endactuator
@@ -55,7 +42,19 @@ version   4
         actuator    Pelvis
             type    Constant
             dof    TransZ
+            direction    positive
+            Tmax    0.000000
+        endactuator
+        actuator    Pelvis
+            type    Constant
+            dof    TransZ
             direction    negative
+            Tmax    0.000000
+        endactuator
+        actuator    Pelvis
+            type    Constant
+            dof    RotX
+            direction    positive
             Tmax    0.000000
         endactuator
         actuator    Pelvis
@@ -64,148 +63,159 @@ version   4
             direction    negative
             Tmax    0.000000
         endactuator
-
-
-
-
-// Informations about Tronc segment
-    // Segment
-    segment    Tronc
-        parent    Pelvis
-        RTinMatrix    1
-        RT
-            1.00000    0.00000    0.00000    0
-            0.00000    1.00000    0.00000    0
-            0.00000    0.00000    1.00000    0
-            0.00000    0.00000    0.00000    1.00000
-        mass    12.61909
-        inertia
-            0.11886    0.00000    0.00000
-            0.00000    0.14601    0.00000
-            0.00000    0.00000    0.10288
-        com        0.00000        -0.06693        0.22007
-        mesh    0.00279    0.07657    0.14222
-        mesh    0.00000    -0.01810    0.08001
-        mesh    0.00228    -0.10029    0.08019
-        mesh    -0.00311    -0.18990    0.25862
-        mesh    -0.10683    -0.18364    0.34808
-        mesh    -0.00932    -0.18127    0.38131
-        mesh    -0.00311    -0.18990    0.25862
-        mesh    0.10683    -0.18364    0.34808
-        mesh    -0.00932    -0.18127    0.38131
-        mesh    0.10683    -0.18364    0.34808
-        mesh    0.16201    -0.12933    0.36322
-        mesh    0.14885    -0.08904    0.36408
-        mesh    0.10196    -0.08338    0.36282
-        mesh    0.06251    -0.08269    0.36618
-        mesh    0.04090    -0.05012    0.34934
-        mesh    -0.00075    -0.05573    0.35472
-        mesh    -0.00029    -0.00944    0.30907
-        mesh    0.04090    -0.05012    0.34934
-        mesh    -0.00029    -0.00944    0.30907
-        mesh    0.00279    0.07657    0.14222
-        mesh    -0.00029    -0.00944    0.30907
-        mesh    -0.04090    -0.05012    0.34934
-        mesh    -0.00075    -0.05573    0.35472
-        mesh    -0.04090    -0.05012    0.34934
-        mesh    -0.06251    -0.08269    0.36618
-        mesh    -0.10196    -0.08338    0.36282
-        mesh    -0.14885    -0.08904    0.36408
-        mesh    -0.16201    -0.12933    0.36322
-        mesh    -0.10683    -0.18364    0.34808
-    endsegment
-
-    // Actuator
-        // No actuator for this segment
-
-
-
-
-// Informations about Tete segment
-    // Segment
-    segment    Tete
-        parent    Tronc
-        RTinMatrix    1
-        RT
-            1.00000    0.00000    0.00000    0.00000
-            0.00000    1.00000    0.00000    -0.01810
-            0.00000    0.00000    1.00000    0.08001
-            0.00000    0.00000    0.00000    1.00000
-        mass    4.36806
-        inertia
-            0.02290    0.00000    0.00000
-            0.00000    0.02290    0.00000
-            0.00000    0.00000    0.01228
-        com        0.00000        -0.08719        0.46373
-        mesh    0.00000    -0.11016    0.34513
-        mesh    0.06129    -0.03875    0.41052
-        mesh    0.06494    -0.04624    0.45690
-        mesh    -0.00353    -0.00558    0.48201
-        mesh    -0.06937    -0.05485    0.46343
-        mesh    -0.07122    -0.04303    0.41862
-        mesh    0.00000    -0.11016    0.34513
-    endsegment
-
-    // Actuator
-        // No actuator for this segment
-
-
-
-// Informations about BrasD segment
-    // Segment
-    segment    BrasD
-        parent    Tronc
-        RTinMatrix    1
-        RT
-            1.00000    0.00000    0.00000    0.16479
-            0.00000    1.00000    0.00000    -0.10658
-            0.00000    0.00000    1.00000    0.30485
-            0.00000    0.00000    0.00000    1.00000
-        rotations    x
-        rangesQ -0.7 3.1
-        rangesQdot -17 13 
-                   -17 17
-        mass    2.39085
-        inertia
-            0.06873    0.00000    0.00000
-            0.00000    0.06879    0.00000
-            0.00000    0.00000    0.00158
-        com        0.03653        0.06239        -0.23357
-        mesh    0.06167    0.03307    -0.23832
-        mesh    0.05967    0.04302    -0.15607
-        mesh    0.04582    0.00556    -0.06750
-        mesh    0.00000    0.00000    0.00000
-        mesh    0.04582    0.00556    -0.06750
-        mesh    0.02253    -0.01481    -0.14066
-        mesh    -0.00579    0.09093    -0.23307
-        mesh    0.01108    0.05121    -0.28232
-        mesh    0.06167    0.03307    -0.23832
-        mesh    0.08015    0.04722    -0.31073
-        mesh    0.02416    0.05529    -0.31175
-        mesh    0.07981    0.12049    -0.29966
-        mesh    0.08015    0.04722    -0.31073
-        mesh    0.10790    0.08098    -0.39544
-        mesh    0.09778    0.14432    -0.38695
-        mesh    0.09267    0.12714    -0.47113
-        mesh    0.14483    0.11092    -0.45125
-        mesh    0.10790    0.08098    -0.39544
-        mesh    0.14483    0.11092    -0.45125
-        mesh    0.13229    0.12429    -0.49310
-        mesh    0.16232    0.12952    -0.50661
-        mesh    0.10240    0.15441    -0.51431
-        mesh    0.13229    0.12429    -0.49310
-        mesh    0.09267    0.12714    -0.47113
-    endsegment
 
     // Markers
-    marker    EpauleD
-        parent    BrasD
-        position    0.00000    -0.00000    0.00000
+    marker    EIASR
+        parent    Pelvis
+        position    0.115131448    0.092868428    0.000000000
+        technical 1
+    endmarker
+    marker    CIR
+        parent    Pelvis
+        position    0.157130691    0.007018970    0.041676639
+        technical 1
+    endmarker
+    marker    EIPSR
+        parent    Pelvis
+        position    0.059310867   -0.092868428   -0.001534902
+        technical 1
+    endmarker
+    marker    EIPSL
+        parent    Pelvis
+        position   -0.059310867   -0.092868428   -0.001534902
+        technical 1
+    endmarker
+    marker    CIL
+        parent    Pelvis
+        position   -0.157130691    0.007018970    0.041676639
+        technical 1
+    endmarker
+    marker    EIASL
+        parent    Pelvis
+        position   -0.115131448    0.092868428    0.000000000
         technical 1
     endmarker
 
+
+// Informations about Thorax segment
+    // Segment
+    segment    Thorax
+        parent    Pelvis
+        RT 0 0 0 xyz 0.0000000000 -0.0515404739 0.1813885235
+        mass    20.46000
+        inertia
+            0.5204000000    0.0000000000    0.0000000000
+            0.0000000000    0.6185000000    0.0000000000
+            0.0000000000    0.0000000000    0.2343000000
+        com     0.0000000000   0.0000000000    0.1767000000
+        meshfile mesh/thorax.stl
+    endsegment
+
     // Actuator
-        actuator    BrasD
+        // No actuator for this segment
+
+    // Markers
+    marker    MANU
+        parent    Thorax
+        position    0.0    0.0868961422    0.2316187468
+        technical 1
+    endmarker
+    marker    MIDSTERNUM
+        parent    Thorax
+        position    0.0    0.1292417834    0.1335001828
+        technical 1
+    endmarker
+    marker    XIPHOIDE
+        parent    Thorax
+        position    0.0    0.1391501107    0.0544570717
+        technical 1
+    endmarker
+    marker    C7
+        parent    Thorax
+        position    0.0    -0.0868961422    0.2437712430
+        technical 1
+    endmarker
+    marker    D3
+        parent    Thorax
+        position    0.0    -0.1102829408    0.1262581696
+        technical 1
+    endmarker
+    marker    D10
+        parent    Thorax
+        position    0.0    -0.0975147242    0.0366452208
+        technical 1
+    endmarker
+
+
+// Informations about Head segment
+    // Segment
+    segment    Head
+        parent    Thorax
+        RT 0 0 0 xyz 0.0000000000 0.0435036145 0.3479414452
+        mass    5.12000
+        inertia
+            0.0881000000    0.0000000000    0.0000000000
+            0.0000000000    0.0881000000    0.0000000000
+            0.0000000000    0.0000000000    0.0156000000
+        com     0.000000000    0.000000000    0.0853000000
+        meshfile mesh/head.stl
+    endsegment
+
+    // Actuator
+        // No actuator for this segment
+
+    // Markers
+    marker    ZYGR
+        parent    Head
+        position    0.057279528    0.065487652    0.107276680
+        technical 1
+    endmarker
+    marker    TEMPR
+        parent    Head
+        position    0.065465897    0.044350176    0.136690942
+        technical 1
+    endmarker
+    marker    GLABELLA
+        parent    Head
+        position    0.0    0.0899295665    0.1454133752
+        technical 1
+    endmarker
+    marker    TEMPL
+        parent    Head
+        position   -0.065465897    0.044350176    0.136690942
+        technical 1
+    endmarker
+    marker    ZYGL
+        parent    Head
+        position   -0.057279528    0.065487652    0.107276680
+        technical 1
+    endmarker
+
+
+// Informations about ArmR segment
+    // Segment
+    segment    ArmR
+        parent    Thorax
+        RTinMatrix    1
+        RT
+            0.849113164    0.462209294   -0.255674409    0.132416264
+           -0.426582111    0.885510004    0.184118810    0.023425367
+            0.311503672   -0.047271576    0.949068417    0.211508031
+            0.000000000    0.000000000    0.000000000    1.000000000
+        rotations    x
+        rangesQ -0.7 3.1
+        rangesQdot -17 17
+        mass    2.36000
+        inertia
+            0.0188000000    0.0000000000    0.0000000000
+            0.0000000000    0.0188000000    0.0000000000
+            0.0000000000    0.0000000000    0.0030000000
+        com     0.000000000    0.000000000   -0.1427000000
+        meshfile mesh/arm.stl
+    endsegment
+
+    // Actuator
+        actuator    ArmR
             type    Gauss3p
             dof     RotX
             direction    positive
@@ -219,7 +229,7 @@ version   4
             r       109.6679
             qopt    -41.0307
         endactuator
-        actuator    BrasD
+        actuator    ArmR
             type    Gauss3p
             dof     RotX
             direction    negative
@@ -229,69 +239,162 @@ version   4
             wc      325.0000
             amin    0.9678
             wr      40.0000
-            w1      -90.0000
+            w1     -90.0000
             r       103.9095
-            qopt    -101.6627
+            qopt   -101.6627
         endactuator
-        
+
+    // Markers
+        marker    DELTR
+            parent    ArmR
+            position    0.068125375    0.020760559   -0.159390408
+            technical 1
+        endmarker
+        marker    BICEPSR
+            parent    ArmR
+            position    0.017011137    0.060870431   -0.227023713
+            technical 1
+        endmarker
+        marker    TRICEPSR
+            parent    ArmR
+            position    0.071751359   -0.008994585   -0.245401683
+            technical 1
+        endmarker
+        marker    EPICONR
+            parent    ArmR
+            position    0.044689695   -0.018181093   -0.329765375
+            technical 1
+        endmarker
+        marker    EPITROR
+            parent    ArmR
+            position   -0.022773043   -0.018181093   -0.322201812
+            technical 1
+        endmarker
 
 
-
-// Informations about BrasG segment
+// Informations about ForearmR segment
     // Segment
-    segment    BrasG
-        parent    Tronc
-        RTinMatrix    1
+    segment    ForearmR
+        parent    ArmR
+        RTinMatrix 1
         RT
-            1.00000    0.00000    0.00000    -0.16479
-            0.00000    1.00000    0.00000    -0.10658
-            0.00000    0.00000    1.00000    0.30485
-            0.00000    0.00000    0.00000    1.00000
-        rotations    x
-        rangesQ -0.7 3.1
-        rangesQdot -17 13 
-                   -17 17
-        mass    2.39085
+            0.609560011   -0.787412788   -0.091747992    0.000427605
+            0.706134516    0.591918534   -0.388595542   -0.000261286
+            0.360292436    0.172085879    0.916829216   -0.338601867
+            0.000000000    0.000000000    0.000000000    1.000000000
+        mass    1.26000
         inertia
-            0.06873    0.00000    0.00000
-            0.00000    0.06879    0.00000
-            0.00000    0.00000    0.00158
-        com        -0.03653        0.06239        -0.23357
-        mesh    -0.06167    0.03307    -0.23832
-        mesh    -0.05967    0.04302    -0.15607
-        mesh    -0.04582    0.00556    -0.06750
-        mesh    0.00000    0.00000    0.00000
-        mesh    -0.04582    0.00556    -0.06750
-        mesh    -0.02253    -0.01481    -0.14066
-        mesh    0.00579    0.09093    -0.23307
-        mesh    -0.01108    0.05121    -0.28232
-        mesh    -0.06167    0.03307    -0.23832
-        mesh    -0.08015    0.04722    -0.31073
-        mesh    -0.02416    0.05529    -0.31175
-        mesh    -0.07981    0.12049    -0.29966
-        mesh    -0.08015    0.04722    -0.31073
-        mesh    -0.10790    0.08098    -0.39544
-        mesh    -0.09778    0.14432    -0.38695
-        mesh    -0.09267    0.12714    -0.47113
-        mesh    -0.14483    0.11092    -0.45125
-        mesh    -0.10790    0.08098    -0.39544
-        mesh    -0.14483    0.11092    -0.45125
-        mesh    -0.13229    0.12429    -0.49310
-        mesh    -0.16232    0.12952    -0.50661
-        mesh    -0.10240    0.15441    -0.51431
-        mesh    -0.13229    0.12429    -0.49310
-        mesh    -0.09267    0.12714    -0.47113
+            0.0079000000    0.0000000000    0.0000000000
+            0.0000000000    0.0080000000    0.0000000000
+            0.0000000000    0.0000000000    0.0010000000
+        com     0.000000000    0.000000000   -0.1264000000
+        meshfile mesh/fore_arm.stl
     endsegment
 
     // Markers
-    marker    EpauleG
-        parent    BrasG
-        position    0.00000    -0.00000    0.00000
-        technical 1
-    endmarker
+        marker    OLE1R
+            parent    ForearmR
+            position   -0.027508949   -0.025965874    0.001659171
+            technical 1
+        endmarker
+        marker    OLE2R
+            parent    ForearmR
+            position   -0.022471706   -0.037181987   -0.064388119
+            technical 1
+        endmarker
+        marker    BRACHR
+            parent    ForearmR
+            position    0.033646866   -0.051132568   -0.104718783
+            technical 1
+        endmarker
+        marker    BRACHANTR
+            parent    ForearmR
+            position    0.048359343    0.020332151   -0.107049364
+            technical 1
+        endmarker
+        marker    ABRAPOSTR
+            parent    ForearmR
+            position    0.013102749   -0.037274015   -0.205096330
+            technical 1
+        endmarker
+        marker    ABRASANTR
+            parent    ForearmR
+            position   -0.004293522    0.032718851   -0.208748191
+            technical 1
+        endmarker
+        marker    ULNAR
+            parent    ForearmR
+            position   -0.031448533   -0.013952173   -0.250948729
+            technical 1
+        endmarker
+        marker    RADIUSR
+            parent    ForearmR
+            position    0.040721877   -0.013952173   -0.258251842
+            technical 1
+        endmarker
+
+
+// Informations about HandR segment
+    // Segment
+    segment    HandR
+        parent    ForearmR
+        RTinMatrix 1
+        RT
+            0.809201305    0.176321565    0.560449779   -0.006721756
+           -0.442494529    0.810432285    0.383924607    0.001217047
+           -0.386512407   -0.558668254    0.733824190   -0.265871926
+            0.000000000    0.000000000    0.000000000    1.000000000
+        mass    0.56000
+        inertia
+            0.0027000000    0.0000000000    0.0000000000
+            0.0000000000    0.0029000000    0.0000000000
+            0.0000000000    0.0000000000    0.0003000000
+        com     0.019270610   -0.007717575   -0.051481325
+        meshfile mesh/hand.stl
+    endsegment
+
+    // Markers
+        marker    METAC5R
+            parent    HandR
+            position   -0.019194547    0.013813052   -0.074220916
+            technical 1
+        endmarker
+        marker    METAC2R
+            parent    HandR
+            position    0.056616022    0.013813052   -0.074220916
+            technical 1
+        endmarker
+        marker    MIDMETAC3R
+            parent    HandR
+            position    0.019270610   -0.007717575   -0.051481325
+            technical 1
+        endmarker
+
+
+// Informations about ArmL segment
+    // Segment
+    segment    ArmL
+        parent    Thorax
+        RTinMatrix    1
+        RT
+            0.849113164   -0.462209294    0.255674409   -0.132416264
+            0.426582111    0.885510004    0.184118810    0.023425367
+           -0.311503672   -0.047271576    0.949068417    0.211508031
+            0.000000000    0.000000000    0.000000000    1.000000000
+        rotations    x
+        rangesQ -0.7 3.1
+        rangesQdot -17 17
+        mass    2.36000
+        inertia
+            0.0188000000    0.0000000000    0.0000000000
+            0.0000000000    0.0188000000    0.0000000000
+            0.0000000000    0.0000000000    0.0030000000
+        com     0.000000000    0.000000000   -0.1427000000
+        meshfile mesh/arm.stl
+    endsegment
 
     // Actuator
-        actuator    BrasG
+        actuator    ArmL
             type    Gauss3p
             dof     RotX
             direction    positive
@@ -301,11 +404,11 @@ version   4
             wc      400.0000
             amin    0.8780
             wr      40.0000
-            w1      -6.2750
+            w1     -6.2750
             r       109.6679
-            qopt    -41.0307
+            qopt   -41.0307
         endactuator
-        actuator    BrasG
+        actuator    ArmL
             type    Gauss3p
             dof     RotX
             direction    negative
@@ -315,46 +418,168 @@ version   4
             wc      325.0000
             amin    0.9678
             wr      40.0000
-            w1      -90.0000
+            w1     -90.0000
             r       103.9095
-            qopt    -101.6627
+            qopt   -101.6627
         endactuator
 
+    // Markers
+        marker    DELTL
+            parent    ArmL
+            position   -0.068125375    0.020760559   -0.159390408
+            technical 1
+        endmarker
+        marker    BICEPSL
+            parent    ArmL
+            position   -0.017011137    0.060870431   -0.227023713
+            technical 1
+        endmarker
+        marker    TRICEPSL
+            parent    ArmL
+            position   -0.071751359   -0.008994585   -0.245401683
+            technical 1
+        endmarker
+        marker    EPICONL
+            parent    ArmL
+            position   -0.044689695   -0.018181093   -0.329765375
+            technical 1
+        endmarker
+        marker    EPITROL
+            parent    ArmL
+            position    0.022773043   -0.018181093   -0.322201812
+            technical 1
+        endmarker
 
-// Informations about CuisseD segment
+
+// Informations about ForearmL segment
     // Segment
-    segment    CuisseD
-        parent    Pelvis
-        RTinMatrix    1
+    segment    ForearmL
+        parent    ArmL
+        RTinMatrix 1
         RT
-            1.00000    0.00000    0.00000    0.08020
-            0.00000    1.00000    0.00000    0.01342
-            0.00000    0.00000    1.00000    -0.09895
-            0.00000    0.00000    0.00000    1.00000
+            0.609560011    0.787412788    0.091747992   -0.000427605
+           -0.706134516    0.591918534   -0.388595542   -0.000261286
+           -0.360292436    0.172085879    0.916829216   -0.338601867
+            0.000000000    0.000000000    0.000000000    1.000000000
+        mass    1.26000
+        inertia
+            0.0079000000    0.0000000000    0.0000000000
+            0.0000000000    0.0080000000    0.0000000000
+            0.0000000000    0.0000000000    0.0010000000
+        com     0.000000000    0.000000000   -0.1264000000
+        meshfile mesh/fore_arm.stl
+    endsegment
+
+    // Markers
+        marker    OLE1L
+            parent    ForearmL
+            position    0.027508949   -0.025965874    0.001659171
+            technical 1
+        endmarker
+        marker    OLE2L
+            parent    ForearmL
+            position    0.022471706   -0.037181987   -0.064388119
+            technical 1
+        endmarker
+        marker    BRACHL
+            parent    ForearmL
+            position   -0.033646866   -0.051132568   -0.104718783
+            technical 1
+        endmarker
+        marker    BRACHANTL
+            parent    ForearmL
+            position   -0.048359343    0.020332151   -0.107049364
+            technical 1
+        endmarker
+        marker    ABRAPOSTL
+            parent    ForearmL
+            position   -0.013102749   -0.037274015   -0.205096330
+            technical 1
+        endmarker
+        marker    ABRASANTL
+            parent    ForearmL
+            position    0.004293522    0.032718851   -0.208748191
+            technical 1
+        endmarker
+        marker    ULNAL
+            parent    ForearmL
+            position    0.031448533   -0.013952173   -0.250948729
+            technical 1
+        endmarker
+        marker    RADIUSL
+            parent    ForearmL
+            position   -0.040721877   -0.013952173   -0.258251842
+            technical 1
+        endmarker
+
+
+// Informations about HandL segment
+    // Segment
+    segment    HandL
+        parent    ForearmL
+        RTinMatrix 1
+        RT
+            0.809201305   -0.176321565   -0.560449779    0.006721756
+            0.442494528    0.810432285    0.383924607    0.001217047
+            0.386512407   -0.558668253    0.733824190   -0.265871926
+            0.000000000    0.000000000    0.000000000    1.000000000
+        mass    0.56000
+        inertia
+            0.0027000000    0.0000000000    0.0000000000
+            0.0000000000    0.0029000000    0.0000000000
+            0.0000000000    0.0000000000    0.0003000000
+        com    -0.019270610   -0.007717575   -0.051481325
+        meshfile mesh/hand.stl
+    endsegment
+
+    // Markers
+        marker    METAC5L
+            parent    HandL
+            position    0.019194547    0.013813052   -0.074220916
+            technical 1
+        endmarker
+        marker    METAC2L
+            parent    HandL
+            position   -0.056616022    0.013813052   -0.074220916
+            technical 1
+        endmarker
+        marker    MIDMETAC3L
+            parent    HandL
+            position   -0.019270610   -0.007717575   -0.051481325
+            technical 1
+        endmarker
+
+
+// Informations about ThighR segment
+    segment    ThighR_rotation
+        // This virtual segment allows for the hip to rotate about X
+        parent Pelvis
+        RT 0 0 -0.6 xyz    0.091447676    0.040607449   -0.104557232
+    endsegment
+
+    // Segment
+    segment    ThighR
+        parent    ThighR_rotation
+        RTinMatrix 1
+        RT
+            0.911571903   -0.411008830   -0.010411886    0.000000000
+            0.407448893    0.906482914   -0.110788657    0.000000000
+            0.054973313    0.096749516    0.993789447    0.000000000
+            0.000000000    0.000000000    0.000000000    1.000000000
         rotations    x
         rangesQ -0.4 2.6
         rangesQdot -20 20
-        mass    6.62882
+        mass    9.49000
         inertia
-            0.07790    0.00000    0.00000
-            0.00000    0.07790    0.00000
-            0.00000    0.00000    0.01985
-        com        0.02797        0.02786        -0.14671
-        mesh    0.00000    0.00000    0.00000
-        mesh    0.10917    0.02169    -0.17854
-        mesh    0.10898    0.08260    -0.35937
-        mesh    0.00206    0.08093    -0.37628
-        mesh    0.02884    -0.02404    -0.28043
-        mesh    0.01361    -0.05144    -0.15273
-        mesh    0.00000    0.00000    0.00000
+			0.1722000000	0.0000000000	0.0000000000
+			0.0000000000	0.1722000000	0.0000000000
+			0.0000000000	0.0000000000	0.0337000000
+        com     0.000000000     0.000000000    -0.2017000000
+        meshfile mesh/thigh.stl
     endsegment
 
-    
-    
-    
-
     // Actuator
-        actuator    CuisseD
+        actuator    ThighR
             type    Gauss3p
             dof     RotX
             direction   positive
@@ -364,11 +589,11 @@ version   4
             wc      190.0000
             amin    0.9900
             wr      40.0000
-            w1      -90.0000
+            w1     -90.0000
             r       56.4021
             qopt    25.6939
         endactuator
-        actuator    CuisseD
+        actuator    ThighR
             type    Gauss3p
             dof     RotX
             direction    negative
@@ -378,44 +603,63 @@ version   4
             wc      225.0000
             amin    0.9692
             wr      40.0000
-            w1      -90.0000
+            w1     -90.0000
             r       48.6999
             qopt    72.5836
         endactuator
 
+    // Markers
+        marker    ISCHIO1R
+            parent    ThighR
+            position   -0.0051866899   -0.0846976317   -0.1749769642
+            technical 1
+        endmarker
+        marker    TFLR
+            parent    ThighR
+            position    0.0717193767   -0.0181873296   -0.2437516095
+            technical 1
+        endmarker
+        marker    ISCHIO2R
+            parent    ThighR
+            position   -0.0069669665   -0.0822958455   -0.3255772042
+            technical 1
+        endmarker
+        marker    CONDEXTR
+            parent    ThighR
+            position    0.0579330126    0.0092862731   -0.4139810478
+            technical 1
+        endmarker
+        marker    CONDINTR
+            parent    ThighR
+            position   -0.0505418843    0.0092862731   -0.4322175241
+            technical 1
+        endmarker
 
-    
-// Informations about JambeD segment
+
+// Informations about LegR segment
     // Segment
-    segment    JambeD
-        parent    CuisseD
-        RTinMatrix    1
+    segment    LegR
+        parent    ThighR
+        RTinMatrix 1
         RT
-            1.00000    0.00000    0.00000    0.07308
-            0.00000    1.00000    0.00000    0.07271
-            0.00000    0.00000    1.00000    -0.38304
-            0.00000    0.00000    0.00000    1.00000
+           -0.983460519   -0.103695173   -0.148501580    0.000000155
+            0.120907245   -0.986326746   -0.111986550    0.000000017
+           -0.134858616   -0.128089268    0.982550911   -0.462839073
+            0.000000000    0.000000000    0.000000000    1.000000000
         rotations    x
-        rangesQ -2.3 -0.02
-        rangesQdot -13 20
-        mass    3.40206
+        rangesQ 0.02 2.3
+        rangesQdot -20 13
+        mass    4.18000
         inertia
-            0.04318    0.00000    0.00000
-            0.00000    0.04318    0.00000
-            0.00000    0.00000    0.00443
-        com        0.00000        0.03743        -0.17186
-        mesh    0.00000    0.00000    0.00000
-        mesh    0.06309    0.00002    -0.12758
-        mesh    0.03513    0.06084    -0.34329
-        mesh    -0.04094    0.08715    -0.32000
-        mesh    -0.00767    -0.00022    -0.26361
-        mesh    -0.00642    0.06737    -0.14626
-        mesh    0.00952    0.04773    -0.02947
-        mesh    0.00000    0.00000    0.00000
+			0.0851000000	0.0000000000	0.0000000000
+			0.0000000000	0.0851000000	0.0000000000
+			0.0000000000	0.0000000000	0.0061000000
+        com     0.0000000000    0.0000000000   -0.2026000000
+        meshfile mesh/leg_right.stl
     endsegment
 
     // Actuator
-        actuator    JambeD
+        actuator    LegR
             type    Gauss3p
             dof     RotX
             direction    positive
@@ -425,11 +669,11 @@ version   4
             wc      575.0000
             amin    0.9900
             wr      40.0000
-            w1      -90.0000
+            w1     -90.0000
             r       31.7218
-            qopt    -61.7303
+            qopt    61.7303
         endactuator
-        actuator    JambeD
+        actuator    LegR
             type    Gauss3p
             dof     RotX
             direction    negative
@@ -439,80 +683,68 @@ version   4
             wc      380.0000
             amin    0.9900
             wr      40.0000
-            w1      -89.9997
+            w1     -89.9997
             r       57.0370
-            qopt    -33.2908
+            qopt    33.2908
         endactuator
 
 
-// Informations about PiedG segment
+	// Markers
+        marker	CRETER
+            parent	LegR
+            position   -0.0197240199   -0.0435501731   -0.1278972274
+            technical 1
+        endmarker
+        marker	JAMBLATR
+            parent	LegR
+            position   -0.0911008623    0.0012688632   -0.0976511149
+            technical 1
+        endmarker
+        marker	TUBR
+            parent	LegR
+            position   -0.0335410792   -0.0534630006   -0.0418608246
+            technical 1
+        endmarker
+        marker	ACHILER
+            parent	LegR
+            position   -0.0031300588    0.0699282100   -0.2456685438
+            technical 1
+        endmarker
+        marker	MALEXTR
+            parent	LegR
+            position    0.0031300588    0.0067254101   -0.4264983755
+            technical 1
+        endmarker
+        marker	MALINTR
+            parent	LegR
+            position    0.0834048433   -0.0165024853   -0.3840660291
+            technical 1
+        endmarker
+
+// Informations about FootR segment
     // Segment
-    segment    PiedD
-        parent    JambeD
-        RTinMatrix    1
+    segment    FootR
+        parent    LegR
+        RTinMatrix 1
         RT
-            1.00000    0.00000    0.00000    0.00132
-            0.00000    1.00000    0.00000    0.07374
-            0.00000    0.00000    1.00000    -0.33859
-            0.00000    0.00000    0.00000    1.00000
+           -0.921921025   -0.364401011    0.131428793    0.041093208
+            0.178312246   -0.097997150    0.979081867    0.000000336
+           -0.343898774    0.926071521    0.155322795   -0.427480971
+            0.000000000    0.000000000    0.000000000    1.000000000
         rotations    x
         rangesQ -0.7 0.7
         rangesQdot -17 17
-        mass    0.77311
+        mass    1.16000
         inertia
-            0.00194    0.00000    0.00000
-            0.00000    0.00211    0.00000
-            0.00000    0.00000    0.00057
-        com        0.01311        0.06986        -0.00337
-        mesh    0.06379    0.09487    -0.01280
-        mesh    0.00379    0.07064    0.01668
-        mesh    0.01175    -0.03816    -0.02629
-        mesh    0.06379    0.09487    -0.01280
-        mesh    -0.00465    0.15809    0.00611
-        mesh    0.00379    0.07064    0.01668
-        mesh    -0.02264    0.12361    0.00225
-        mesh    -0.00465    0.15809    0.00611
-        mesh    -0.02264    0.12361    0.00225
-        mesh    -0.04091    -0.01479    -0.03150
-        mesh    0.00379    0.07064    0.01668
-        mesh    0.01175    -0.03816    -0.02629
-        mesh    -0.04091    -0.01479    -0.03150
-        mesh    0.01175    -0.03816    -0.02629
-        mesh    0.06379    0.09487    -0.01280
+			0.0089000000	0.0000000000	0.0000000000
+			0.0000000000	0.0011000000	0.0000000000
+			0.0000000000	0.0000000000	0.0088000000
+        com     0.0000000000    0.0000000000   -0.0757000000
+        meshfile mesh/foot.stl
     endsegment
 
-    // Markers
-    marker    ToeD
-        parent    PiedD
-        position    -0.00465    0.15809    0.00611
-        technical 1
-    endmarker
-    marker    TalD
-        parent    PiedD
-        position    0.01175    -0.03816    -0.02629
-        technical 1
-    endmarker
-
-    // Contact
-    contact    PiedD_1
-        parent    PiedD
-        position    -0.00465    0.15809    0.00611
-        axis    yz
-    endcontact
-    contact    PiedD_2
-        parent    PiedD
-        position    0.00757    0.01189    -0.01802
-        axis    z
-    endcontact
-
-
-
-
-
-
-
     // Actuator
-        actuator    PiedD
+        actuator    FootR
             type    Gauss3p
             dof     RotX
             direction    positive
@@ -526,7 +758,7 @@ version   4
             r       58.9832
             qopt    0.7442
         endactuator
-        actuator    PiedD
+        actuator    FootR
             type    Gauss3p
             dof     RotX
             direction    negative
@@ -541,38 +773,92 @@ version   4
             qopt    12.6824
         endactuator
 
+    // Markers
+        marker    CALCR
+            parent    FootR
+            position    0.0093507755   -0.0149047308    0.0616112047
+            technical 1
+        endmarker
+        marker    MIDMETA4R
+            parent    FootR
+            position    0.0457594657   -0.0025980495   -0.0750086989
+            technical 1
+        endmarker
+        marker    MIDMETA1R
+            parent    FootR
+            position   -0.0487661075   -0.0080839377   -0.0900319982
+            technical 1
+        endmarker
+        marker    SCAPHOIDER
+            parent    FootR
+            position   -0.0055624757    0.0233580035   -0.0837555676
+            technical 1
+        endmarker
+        marker    METAT5R
+            parent    FootR
+            position    0.0500235361   -0.0000000000   -0.1334028091
+            technical 1
+        endmarker
+        marker    METAT1R
+            parent    FootR
+            position   -0.0500235361   -0.0000000000   -0.1514579448
+            technical 1
+        endmarker
+
+    // Contact
+        contact    FootR_Heel
+            parent    FootR
+            position   0.00000000000   -0.0300000000    0.05000000000
+            axis    z
+        endcontact
+        contact    FootR_Toe
+            parent    FootR
+            position   0.00000000000   -0.0300000000   -0.15000000000
+            axis    yz
+        endcontact
+
+        marker  CONTACT_HEELR
+            parent    FootR
+            position   0.00000000000   -0.0300000000     0.05000000000
+        endmarker
+        marker  CONTACT_TOER
+            parent    FootR
+            position   0.00000000000   -0.0300000000    -0.15000000000
+        endmarker
 
 
-// Informations about CuisseG segment
+
+
+// Informations about ThighL segment
+    segment    ThighL_rotation
+        // This virtual segment allows for the hip to rotate about X
+        parent Pelvis
+        RT 0 0 0.6 xyz   -0.091447676    0.040607449   -0.104557232
+    endsegment
+
     // Segment
-    segment    CuisseG
-        parent    Pelvis
-        RTinMatrix    1
+    segment    ThighL
+        parent    ThighL_rotation
+        RTinMatrix 1
         RT
-            1.00000    0.00000    0.00000    -0.08020
-            0.00000    1.00000    0.00000    0.01342
-            0.00000    0.00000    1.00000    -0.09895
-            0.00000    0.00000    0.00000    1.00000
+            0.911571903    0.411008830    0.010411886    0.000000000
+           -0.407448893    0.906482914   -0.110788657    0.000000000
+           -0.054973313    0.096749516    0.993789448    0.000000000
+            0.000000000    0.000000000    0.000000000    1.000000000
         rotations    x
         rangesQ -0.4 2.6
         rangesQdot -20 20
-        mass    6.62882
+        mass    9.49000
         inertia
-            0.07790    0.00000    0.00000
-            0.00000    0.07790    0.00000
-            0.00000    0.00000    0.01985
-        com        -0.02797        0.02786        -0.14671
-        mesh    0.00000    0.00000    0.00000
-        mesh    -0.10917    0.02169    -0.17854
-        mesh    -0.10898    0.08260    -0.35937
-        mesh    -0.00206    0.08093    -0.37628
-        mesh    -0.02884    -0.02404    -0.28043
-        mesh    -0.01361    -0.05144    -0.15273
-        mesh    0.00000    0.00000    0.00000
+			0.1722000000	0.0000000000	0.0000000000
+			0.0000000000	0.1722000000	0.0000000000
+			0.0000000000	0.0000000000	0.0337000000
+        com     0.000000000    0.000000000   -0.2017000000
+        meshfile mesh/thigh.stl
     endsegment
 
     // Actuator
-        actuator    CuisseG
+        actuator    ThighL
             type    Gauss3p
             dof     RotX
             direction   positive
@@ -582,11 +868,11 @@ version   4
             wc      190.0000
             amin    0.9900
             wr      40.0000
-            w1      -90.0000
+            w1     -90.0000
             r       56.4021
             qopt    25.6939
         endactuator
-        actuator    CuisseG
+        actuator    ThighL
             type    Gauss3p
             dof     RotX
             direction    negative
@@ -596,45 +882,63 @@ version   4
             wc      225.0000
             amin    0.9692
             wr      40.0000
-            w1      -90.0000
+            w1     -90.0000
             r       48.6999
             qopt    72.5836
         endactuator
-    
-    
+
+    // Markers
+        marker    ISCHIO1L
+            parent    ThighL
+            position    0.0051866899   -0.0846976317   -0.1749769642
+            technical 1
+        endmarker
+        marker    TFLL
+            parent    ThighL
+            position   -0.0717193767   -0.0181873296   -0.2437516095
+            technical 1
+        endmarker
+        marker    ISCHIO2L
+            parent    ThighL
+            position    0.0069669665   -0.0822958455   -0.3255772042
+            technical 1
+        endmarker
+        marker    CONDEXTL
+            parent    ThighL
+            position   -0.0579330126    0.0092862731   -0.4139810478
+            technical 1
+        endmarker
+        marker    CONDINTL
+            parent    ThighL
+            position    0.0505418843    0.0092862731   -0.4322175241
+            technical 1
+        endmarker
 
 
-// Informations about JambeG segment
+// Informations about LegL segment
     // Segment
-    segment    JambeG
-        parent    CuisseG
-        RTinMatrix    1
+    segment    LegL
+        parent    ThighL
+        RTinMatrix 1
         RT
-            1.00000    0.00000    0.00000    -0.07308
-            0.00000    1.00000    0.00000    0.07271
-            0.00000    0.00000    1.00000    -0.38304
-            0.00000    0.00000    0.00000    1.00000
+           -0.983460519    0.103695173    0.148501580   -0.000000155
+           -0.120907245   -0.986326746   -0.111986550    0.000000017
+            0.134858616   -0.128089268    0.982550911   -0.462839073
+            0.000000000    0.000000000    0.000000000    1.000000000
         rotations    x
-        rangesQ -2.3 -0.02
-        rangesQdot -13 20
-        mass    3.40206
+        rangesQ 0.02 2.3
+        rangesQdot -20 13
+        mass    4.18000
         inertia
-            0.04318    0.00000    0.00000
-            0.00000    0.04318    0.00000
-            0.00000    0.00000    0.00443
-        com        0.00000        0.03743        -0.17186
-        mesh    0.00000    0.00000    0.00000
-        mesh    -0.06309    0.00002    -0.12758
-        mesh    -0.03513    0.06084    -0.34329
-        mesh    0.04094    0.08715    -0.32000
-        mesh    0.00767    -0.00022    -0.26361
-        mesh    0.00642    0.06737    -0.14626
-        mesh    -0.00952    0.04773    -0.02947
-        mesh    0.00000    0.00000    0.00000
+			0.0851000000	0.0000000000	0.0000000000
+			0.0000000000	0.0851000000	0.0000000000
+			0.0000000000	0.0000000000	0.0061000000
+        com     0.0000000000    0.0000000000   -0.2026000000
+        meshfile mesh/leg_left.stl
     endsegment
 
     // Actuator
-        actuator    JambeG
+        actuator    LegL
             type    Gauss3p
             dof     RotX
             direction    positive
@@ -646,9 +950,9 @@ version   4
             wr      40.0000
             w1      -90.0000
             r       31.7218
-            qopt    -61.7303
+            qopt    61.7303
         endactuator
-        actuator    JambeG
+        actuator    LegL
             type    Gauss3p
             dof     RotX
             direction    negative
@@ -660,74 +964,66 @@ version   4
             wr      40.0000
             w1      -89.9997
             r       57.0370
-            qopt    -33.2908
+            qopt    33.2908
         endactuator
 
+    // Markers
+        marker	CRETEL
+            parent	LegL
+            position    0.0197240199   -0.0435501731   -0.1278972274
+            technical 1
+        endmarker
+        marker	JAMBLATL
+            parent	LegL
+            position    0.0911008623    0.0012688632   -0.0976511149
+            technical 1
+        endmarker
+        marker	TUBL
+            parent	LegL
+            position    0.0335410792   -0.0534630006   -0.0418608246
+            technical 1
+        endmarker
+        marker	ACHILEL
+            parent	LegL
+            position    0.0031300588    0.0699282100   -0.2456685438
+            technical 1
+        endmarker
+        marker	MALEXTL
+            parent	LegL
+            position   -0.0031300588    0.0067254101   -0.4264983755
+            technical 1
+        endmarker
+        marker	MALINTL
+            parent	LegL
+            position   -0.0834048433   -0.0165024853   -0.3840660291
+            technical 1
+        endmarker
 
 
-// Informations about PiedG segment
+// Informations about FootL segment
     // Segment
-    segment    PiedG
-        parent    JambeG
-        RTinMatrix    1
+    segment    FootL
+        parent    LegL
+        RTinMatrix 1
         RT
-            1.00000    0.00000    0.00000    -0.00132
-            0.00000    1.00000    0.00000    0.07374
-            0.00000    0.00000    1.00000    -0.33859
-            0.00000    0.00000    0.00000    1.00000
+           -0.921921025    0.364401011   -0.131428793   -0.041093208
+           -0.178312245   -0.097997149    0.979081867    0.000000336
+            0.343898775    0.926071521    0.155322795   -0.427480971
+            0.000000000    0.000000000    0.000000000    1.000000000
         rotations    x
         rangesQ -0.7 0.7
         rangesQdot -17 17
-        mass    0.77311
+        mass    1.16000
         inertia
-            0.00194    0.00000    0.00000
-            0.00000    0.00211    0.00000
-            0.00000    0.00000    0.00057
-        com        -0.01311        0.06986        -0.00337
-        mesh    -0.06379    0.09487    -0.01280
-        mesh    -0.00379    0.07064    0.01668
-        mesh    -0.01175    -0.03816    -0.02629
-        mesh    -0.06379    0.09487    -0.01280
-        mesh    0.00465    0.15809    0.00611
-        mesh    -0.00379    0.07064    0.01668
-        mesh    0.02264    0.12361    0.00225
-        mesh    0.00465    0.15809    0.00611
-        mesh    0.02264    0.12361    0.00225
-        mesh    0.04091    -0.01479    -0.03150
-        mesh    -0.00379    0.07064    0.01668
-        mesh    -0.01175    -0.03816    -0.02629
-        mesh    0.04091    -0.01479    -0.03150
-        mesh    -0.01175    -0.03816    -0.02629
-        mesh    -0.06379    0.09487    -0.01280
+			0.0089000000	0.0000000000	0.0000000000
+			0.0000000000	0.0011000000	0.0000000000
+			0.0000000000	0.0000000000	0.0088000000
+        com     0.0000000000    0.0000000000   -0.0757000000
+        meshfile mesh/foot.stl
     endsegment
 
-    // Markers
-    marker    ToeG
-        parent    PiedG
-        position    0.00465    0.15809    0.00611
-        technical 1
-    endmarker
-    marker    TalG
-        parent    PiedG
-        position    -0.01175    -0.03816    -0.02629
-        technical 1
-    endmarker
-
-    // Contact
-    contact    PiedG_1
-        parent    PiedG
-        position    0.00465    0.15809    0.00611
-        axis    yz
-    endcontact
-    contact    PiedG_2
-        parent    PiedG
-        position    -0.00757    0.01189    -0.01802
-        axis    z
-    endcontact
-
-
     // Actuator
-        actuator    PiedG
+        actuator    FootL
             type    Gauss3p
             dof     RotX
             direction    positive
@@ -741,7 +1037,7 @@ version   4
             r       58.9832
             qopt    0.7442
         endactuator
-        actuator    PiedG
+        actuator    FootL
             type    Gauss3p
             dof     RotX
             direction    negative
@@ -756,4 +1052,55 @@ version   4
             qopt    12.6824
         endactuator
 
+    // Markers
+        marker    CALCL
+            parent    FootL
+            position   -0.0093507755   -0.0149047308    0.0616112047
+            technical 1
+        endmarker
+        marker    MIDMETA4L
+            parent    FootL
+            position   -0.0457594657   -0.0025980495   -0.0750086989
+            technical 1
+        endmarker
+        marker    MIDMETA1L
+            parent    FootL
+            position    0.0487661075   -0.0080839377   -0.0900319982
+            technical 1
+        endmarker
+        marker    SCAPHOIDEL
+            parent    FootL
+            position    0.0055624757    0.0233580035   -0.0837555676
+            technical 1
+        endmarker
+        marker    METAT5L
+            parent    FootL
+            position   -0.0500235361   -0.0000000000   -0.1334028091
+            technical 1
+        endmarker
+        marker    METAT1L
+            parent    FootL
+            position    0.0500235361   -0.0000000000   -0.1514579448
+            technical 1
+        endmarker
 
+    // Contact
+        contact    FootL_Heel
+            parent    FootL
+            position   0.00000000000   -0.0300000000    0.05000000000
+            axis    z
+        endcontact
+        contact    FootL_Toe
+            parent    FootL
+            position   0.00000000000   -0.0300000000   -0.15000000000
+            axis    yz
+        endcontact
+
+        marker  CONTACT_HEELL
+            parent    FootL
+            position   0.00000000000   -0.0300000000     0.05000000000
+        endmarker
+        marker  CONTACT_TOEL
+            parent    FootL
+            position   0.00000000000   -0.0300000000    -0.15000000000
+        endmarker

@@ -29,8 +29,8 @@ if __name__ == "__main__":
 
     # --- Prepare and solve MHE --- #
     np.random.seed(450)
-    use_noise = False  # True to add noise on reference joint angles
-    use_excitations = True
+    use_noise = True  # True to add noise on reference joint angles
+    use_excitations = False
     q_noise_lvl = 4
     t = 8
     ns = 800
@@ -44,15 +44,18 @@ if __name__ == "__main__":
     )
 
     x_ref_no_noise = np.concatenate((q_ref_no_noise, dq_ref_no_noise))
-    x_ref = np.concatenate((generate_noise(biorbd_model, q_ref_no_noise, q_noise_lvl), dq_ref_no_noise)
-        if use_noise else (q_ref_no_noise, dq_ref_no_noise))
+    x_ref = np.concatenate(
+        (generate_noise(biorbd_model, q_ref_no_noise, q_noise_lvl), dq_ref_no_noise)
+        if use_noise
+        else (q_ref_no_noise, dq_ref_no_noise)
+    )
 
     if use_excitations:
         x_ref_no_noise = np.concatenate((x_ref_no_noise, act_ref_no_noise), axis=0)
         x_ref = np.concatenate((x_ref, act_ref_no_noise), axis=0)
         act_ref = act_ref_no_noise
 
-    q_ref, dq_ref = x_ref[:biorbd_model.nbQ(), :], x_ref[biorbd_model.nbQ():biorbd_model.nbQ()*2, :]
+    q_ref, dq_ref = x_ref[: biorbd_model.nbQ(), :], x_ref[biorbd_model.nbQ() : biorbd_model.nbQ() * 2, :]
 
     # Initialize MHE
     mhe, solver_options = prepare_mhe(
@@ -62,7 +65,7 @@ if __name__ == "__main__":
         x_ref=x_ref,
         rt_ratio=rt_ratio,
         use_noise=use_noise,
-        use_excitations=use_excitations
+        use_excitations=use_excitations,
     )
 
     final_time_index = x_ref[:, ::rt_ratio].shape[1] - ns_mhe
@@ -71,7 +74,7 @@ if __name__ == "__main__":
     tic = time()  # Save initial time
     sol = mhe.solve(
         lambda mhe, i, sol: update_mhe(mhe, i, sol, q_ref, ns_mhe, rt_ratio, final_time_index),
-        solver_options=solver_options
+        solver_options=solver_options,
     )
 
     # sol.graphs()
@@ -103,8 +106,6 @@ if __name__ == "__main__":
     # Same offset used to compute RMSE
     T = 8
     Ns = 800
-    # final_offset = 1
-    # init_offset = 5
 
     # Get data from MHE problem
     model = "arm_wt_rot_scap.bioMod"
@@ -116,11 +117,16 @@ if __name__ == "__main__":
     x_ref = x_ref[:, ::rt_ratio]
     x_init = x_ref_no_noise[:, ::rt_ratio]
     t_x = np.linspace(0, T, q_est.shape[1] - init_offset - final_offset)
-    t_u = np.linspace(0, T, act_est.shape[1] - init_offset - final_offset)
+    t_u = np.linspace(0, T, muscle_controls_est.shape[1] - init_offset - final_offset)
 
     # ----- Plot Q -----#
     size_police = 12
-    q_name = ["Glenohumeral plane of elevation", "Glenohumeral elevation", "Glenohumeral axial rotation", "Elbow flexion"]
+    q_name = [
+        "Glenohumeral plane of elevation",
+        "Glenohumeral elevation",
+        "Glenohumeral axial rotation",
+        "Elbow flexion",
+    ]
     fig = plt.figure("MHE_Results")
     grid = plt.GridSpec(2, 4, wspace=0.15, hspace=0.4, left=0.06, right=0.99)
     for i in [1, 3]:
@@ -158,5 +164,5 @@ if __name__ == "__main__":
         plt.plot(t_u, fref_to_plot[i, init_offset : -ns_mhe - final_offset], alpha=0.8)
         plt.title(muscles_names[i], fontsize=size_police)
         plt.gca().yaxis.set_major_formatter(ticker.StrMethodFormatter("{x:,.0f}"))
-    u_ref = act_ref[:, ::rt_ratio]
+    u_ref = muscle_controls_est[:, ::rt_ratio]
     plt.show()

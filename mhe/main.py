@@ -30,8 +30,7 @@ if __name__ == "__main__":
 
     # --- Prepare and solve MHE --- #
     np.random.seed(450)
-    use_noise = False  # True to add noise on reference joint angles
-    use_excitations = True
+    use_noise = True  # True to add noise on reference joint angles
     q_noise_lvl = 4
     t = 8
     ns = 800
@@ -45,15 +44,12 @@ if __name__ == "__main__":
     )
 
     x_ref_no_noise = np.concatenate((q_ref_no_noise, dq_ref_no_noise))
-    x_ref = np.concatenate((generate_noise(biorbd_model, q_ref_no_noise, q_noise_lvl), dq_ref_no_noise)
-                           if use_noise else (q_ref_no_noise, dq_ref_no_noise))
-
-    if use_excitations:
-        x_ref_no_noise = np.concatenate((x_ref_no_noise, act_ref_no_noise), axis=0)
-        x_ref = np.concatenate((x_ref, act_ref_no_noise), axis=0)
-        act_ref = act_ref_no_noise
-
-    q_ref, dq_ref = x_ref[:biorbd_model.nbQ(), :], x_ref[biorbd_model.nbQ():biorbd_model.nbQ() * 2, :]
+    x_ref = np.concatenate(
+        (generate_noise(biorbd_model, q_ref_no_noise, q_noise_lvl), dq_ref_no_noise)
+        if use_noise
+        else (q_ref_no_noise, dq_ref_no_noise)
+    )
+    q_ref, dq_ref = x_ref[: biorbd_model.nbQ(), :], x_ref[biorbd_model.nbQ() : biorbd_model.nbQ() * 2, :]
 
     # Initialize MHE
     mhe, solver_options = prepare_mhe(
@@ -63,7 +59,6 @@ if __name__ == "__main__":
         x_ref=x_ref,
         rt_ratio=rt_ratio,
         use_noise=use_noise,
-        use_excitations=use_excitations
     )
 
     final_time_index = x_ref[:, ::rt_ratio].shape[1] - ns_mhe
@@ -72,7 +67,7 @@ if __name__ == "__main__":
     tic = time()  # Save initial time
     sol = mhe.solve(
         lambda mhe, i, sol: update_mhe(mhe, i, sol, q_ref, ns_mhe, rt_ratio, final_time_index),
-        solver_options=solver_options
+        solver_options=solver_options,
     )
 
     # sol.graphs()
@@ -80,12 +75,10 @@ if __name__ == "__main__":
 
     # Show some statistics
     q_est, dq_est, muscle_controls_est = sol.states["q"], sol.states["qdot"], sol.controls["muscles"]
-    muscle_controls_ref = exc_ref_no_noise if use_excitations else act_ref_no_noise
-    muscle_force = muscle_force_func(biorbd_model, use_excitations=use_excitations)
-    act_est = sol.states["muscles"] if use_excitations else []
-    act_ref = act_ref_no_noise if use_excitations else []
-    force_est = np.array(muscle_force(q_est, dq_est, act_est, muscle_controls_est))
-    force_ref = np.array(muscle_force(q_ref_no_noise, dq_ref_no_noise, act_ref, muscle_controls_ref))
+    muscle_controls_ref = act_ref_no_noise
+    muscle_force = muscle_force_func(biorbd_model)
+    force_est = np.array(muscle_force(q_est, dq_est, [], muscle_controls_est))
+    force_ref = np.array(muscle_force(q_ref_no_noise, dq_ref_no_noise, [], muscle_controls_ref))
     final_offset = 5  # Number of last nodes to ignore when calculate RMSE
     init_offset = 5  # Number of initial nodes to ignore when calculate RMSE
     offset = ns_mhe
@@ -99,32 +92,11 @@ if __name__ == "__main__":
     rmse_f = rmse(force_est[:, init_offset:-final_offset], force_ref[:, init_offset : -final_offset - ns_mhe])
     std_f = np.std(force_est[:, init_offset:-final_offset] - force_ref[:, init_offset : -final_offset - ns_mhe])
     print(f"Q RMSE: {rmse_q} +/- {std_q}; F RMSE: {rmse_f} +/- {std_f}")
-    # x_ref = np.concatenate((x_ref, act_ref))
-
-    dic = {
-        "x_est": sol.states["all"],
-        "u_est": sol.controls["all"],
-        "x_ref": x_ref,
-        "x_init": x_ref_no_noise,
-        "u_ref": act_ref,
-        "time_per_mhe": toc / ceil(ns / rt_ratio - ns_mhe),
-        "time_tot": toc,
-        "q_noise": q_noise_lvl,
-        "N_mhe": ns_mhe,
-        "N_tot": ns,
-        "rt_ratio": rt_ratio,
-        "f_est": force_est,
-        "f_ref": force_ref,
-    }
-    sio.savemat(f"data/MHE_results.mat", dic)
-    duration = 1
-    t = 8
-    ns = 800
 
     print("*********************************************")
     print(f"Problem solved with Acados")
-    print(f"Solving time : {dic['time_tot']}s")
-    print(f"Solving frequency : {1/dic['time_per_mhe']}s")
+    print(f"Solving time : {sol.solver_time_to_optimize} s")
+    print(f"Solving frequency : {1 / (sol.solver_time_to_optimize / ceil(ns / rt_ratio - ns_mhe))}")
 
     # ------ Animate ------ #
     b = bioviz.Viz(model_path)

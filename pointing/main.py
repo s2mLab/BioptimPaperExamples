@@ -9,7 +9,6 @@ mesh points.
 import biorbd_casadi as biorbd
 import numpy as np
 from bioptim import Solver, Shooting
-
 from pointing.ocp import prepare_ocp
 
 
@@ -31,7 +30,12 @@ def compute_error_single_shooting(sol, duration):
     rot_idx = np.array(rot_idx)
     trans_idx = np.array(trans_idx)
 
-    sol_int = sol.integrate(shooting_type=Shooting.SINGLE_CONTINUOUS, merge_phases=True, keep_intermediate_points=False)
+    sol_int = sol.integrate(
+        shooting_type=Shooting.SINGLE_CONTINUOUS,
+        merge_phases=True,
+        keep_intermediate_points=False,
+        use_scipy_integrator=True,
+    )
     sn_1s = int(sol_int.ns[0] / sol_int.phase_time[-1] * duration)  # shooting node at {duration} second
     if len(rot_idx) > 0:
         single_shoot_error_r = (
@@ -57,25 +61,44 @@ if __name__ == "__main__":
     """
     Prepare and solve and animate a reaching task ocp
     """
-    use_ipopt = False
-    weights = np.array([100, 1, 1, 100000])
+    use_ipopt = True
+    use_excitations = False
+    use_collocation = False
+    if use_excitations:
+        weights = np.array([10, 1, 10, 100000, 1]) if not use_ipopt else np.array([10, 0.1, 10, 10000, 0.1])
+    else:
+        weights = np.array([100, 1, 1, 100000, 1]) if not use_ipopt else np.array([100, 1, 1, 100000, 1])
     model_path = "/".join(__file__.split("/")[:-1]) + "/models/arm26.bioMod"
     biorbd_model = biorbd.Model(model_path)
-    ocp = prepare_ocp(biorbd_model=biorbd_model, final_time=2, n_shooting=50, use_sx=not use_ipopt, weights=weights)
+    ocp = prepare_ocp(
+        biorbd_model=biorbd_model,
+        final_time=2,
+        n_shooting=200,
+        use_sx=not use_ipopt,
+        weights=weights,
+        use_excitations=use_excitations,
+        use_collocation=use_collocation,
+    )
 
     # --- Solve the program --- #
     if use_ipopt:
         opts = {"linear_solver": "mumps", "hessian_approximation": "exact"}
         solver = Solver.IPOPT
     else:
-        opts = {"sim_method_num_steps": 5, "tol": 1e-8, "integrator_type": "ERK", "hessian_approx": "GAUSS_NEWTON"}
+        opts = {
+            "sim_method_num_steps": 5,
+            "tol": 1e-8,
+            "integrator_type": "ERK",
+            "hessian_approx": "GAUSS_NEWTON",
+            "nlp_solver_max_iter": 1000,
+        }
         solver = Solver.ACADOS
     sol = ocp.solve(solver=solver, solver_options=opts, show_online_optim=False)
 
     # --- Show results --- #
-    sol.print()
     single_shooting_duration = 1
     ss_err_t, ss_err_r = compute_error_single_shooting(sol, 1)
+
     print("*********************************************")
     print(f"Problem solved with {solver.value}")
     print(f"Solving time : {sol.solver_time_to_optimize}s")

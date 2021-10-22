@@ -6,7 +6,7 @@ the oscillation of a pendulum.
 from time import time
 
 import numpy as np
-from bioptim import Shooting
+from bioptim import Shooting, Solver
 
 from pendulum.ocp import prepare_ocp
 
@@ -19,7 +19,7 @@ if __name__ == "__main__":
 
     # --- Solve the program --- #
     tic = time()
-    sol = ocp.solve(show_online_optim=False, solver_options={"linear_solver": "mumps"})
+    sol = ocp.solve()
     toc = time() - tic
 
     def compute_error_single_shooting(ocp, sol, duration):
@@ -35,3 +35,4 @@ if __name__ == "__main__":
     print(f"Single shooting error : {compute_error_single_shooting(ocp, sol, 1)}")
     print(f"Time to solve : {toc}sec")
     print("*********************************************")
+    sol.graphs()

@@ -28,15 +28,6 @@ if __name__ == "__main__":
                 f"Single shooting integration duration must be smaller than ocp duration :{ocp.nlp[0].tf} s"
             )
         sol_int = sol.integrate(shooting_type=Shooting.SINGLE_CONTINUOUS, use_scipy_integrator=True)
-        # t = np.linspace(0, 8, sol_int.states["q"].shape[1])
-        import matplotlib.pyplot as plt
-        plt.figure()
-        for i in range(sol_int.states[0]["q"].shape[0]):
-            plt.subplot(2, 2, i + 1)
-            plt.plot(sol_int.states[0]["q"][i, :] * 180 / np.pi, label="int")
-            plt.plot(sol.states[0]["q"][i, :] * 180 / np.pi)
-        plt.legend()
-        plt.show()
         sn_1s = int(ocp.nlp[0].ns / ocp.nlp[0].tf * duration)  # shooting node at {duration} second
         return np.sqrt(np.mean((sol_int.states[0]["all"][:, 5 * sn_1s] - sol.states[0]["all"][:, sn_1s]) ** 2))
 

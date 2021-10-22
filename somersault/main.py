@@ -3,6 +3,7 @@ This is an example on how to use quaternion to represent the orientation of the 
 The avatar must complete one somersault rotation while maximizing the twist rotation.
 """
 import numpy as np
+from bioptim import Solver
 
 from somersault.ocp import prepare_ocp, prepare_ocp_quaternion
 
@@ -17,5 +18,9 @@ if __name__ == "__main__":
     else:
         ocp = prepare_ocp(root_folder + "/models/JeChMesh_8DoF.bioMod", final_time=1.5, n_shooting=100)
 
-    sol = ocp.solve(solver_options={"tol": 1e-15, "constr_viol_tol": 1e-15, "max_iter": 1000})
+    solver = Solver.IPOPT()
+    solver.set_convergence_tolerance(1e-15)
+    solver.set_acceptable_constr_viol_tol(1e-15)
+    solver.set_maximum_iterations(1000)
+    sol = ocp.solve(solver)
     sol.animate()

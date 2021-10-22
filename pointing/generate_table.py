@@ -15,15 +15,13 @@ def generate_table(out):
     use_ipopt = True
     weights = np.array([100, 1, 1, 100000])
     ocp = prepare_ocp(biorbd_model=biorbd_model_ip, final_time=2, n_shooting=50, use_sx=not use_ipopt, weights=weights)
-    opts = {"linear_solver": "ma57", "hessian_approximation": "exact",  "print_level": 0}
-    solver = Solver.IPOPT
+    solver_ipopt = Solver.IPOPT()
+    solver_ipopt.set_linear_solver("ma57")
+    solver_ipopt.set_print_level(0)
 
     # --- Solve the program --- #
     tic = time()
-    sol = ocp.solve(
-        solver=solver,
-        solver_options=opts,
-    )
+    sol = ocp.solve(solver_ipopt)
     toc = time() - tic
     sol_merged = sol.merge_phases()
 
@@ -40,15 +38,15 @@ def generate_table(out):
     use_ipopt = False
     biorbd_model_ac = biorbd.Model(model_path)
     ocp = prepare_ocp(biorbd_model=biorbd_model_ac, final_time=2, n_shooting=50, use_sx=not use_ipopt, weights=weights)
-    opts = {"sim_method_num_steps": 5, "tol": 1e-8, "integrator_type": "ERK",
-            "hessian_approx": "GAUSS_NEWTON",  "print_level": 0}
-    solver = Solver.ACADOS
+    solver_acados = Solver.ACADOS()
+    solver_acados.set_sim_method_num_steps(5)
+    solver_acados.set_convergence_tolerance(1e-8)
+    solver_acados.set_integrator_type("ERK")
+    solver_acados.set_hessian_approx("GAUSS_NEWTON")
+    solver_acados.set_print_level(0)
 
     # --- Solve the program --- #
-    sol = ocp.solve(
-        solver=solver,
-        solver_options=opts,
-    )
+    sol = ocp.solve(solver_acados)
 
     out.solver.append(out.Solver("Acados"))
     out.solver[1].n_iteration = sol.iterations

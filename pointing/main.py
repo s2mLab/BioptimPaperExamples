@@ -65,19 +65,22 @@ if __name__ == "__main__":
 
     # --- Solve the program --- #
     if use_ipopt:
-        opts = {"linear_solver": "mumps", "hessian_approximation": "exact"}
-        solver = Solver.IPOPT
+        solver = Solver.IPOPT()
+        solver.set_hessian_approximation("exact")
     else:
-        opts = {"sim_method_num_steps": 5, "tol": 1e-8, "integrator_type": "ERK", "hessian_approx": "GAUSS_NEWTON"}
-        solver = Solver.ACADOS
-    sol = ocp.solve(solver=solver, solver_options=opts, show_online_optim=False)
+        solver = Solver.ACADOS()
+        solver.set_sim_method_num_steps(5)
+        solver.set_convergence_tolerance(1e-8)
+        solver.set_integrator_type("ERK")
+        solver.set_hessian_approx("GAUSS_NEWTON")
+    sol = ocp.solve(solver=solver)
 
     # --- Show results --- #
     sol.print()
     single_shooting_duration = 1
     ss_err_t, ss_err_r = compute_error_single_shooting(sol, 1)
     print("*********************************************")
-    print(f"Problem solved with {solver.value}")
+    print(f"Problem solved with {solver.type}")
     print(f"Solving time : {sol.solver_time_to_optimize}s")
     print(f"Single shooting error at {single_shooting_duration}s in translation (mm)= {ss_err_t}")
     print(f"Single shooting error at {single_shooting_duration}s in rotation (°)= {ss_err_r}")

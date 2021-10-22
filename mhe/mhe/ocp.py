@@ -14,6 +14,7 @@ from bioptim import (
     QAndQDotBounds,
     InitialGuess,
     InterpolationType,
+    Solver,
 )
 
 
@@ -204,18 +205,16 @@ def prepare_mhe(
         n_threads=8
     )
 
-    solver_options = {
-         "nlp_solver_tol_comp": 1e-10,
-         "nlp_solver_tol_eq": 1e-10,
-         "nlp_solver_tol_stat": 1e-8,
-         "integrator_type": "IRK",
-         "nlp_solver_type": "SQP",
-         "sim_method_num_steps": 1,
-         "print_level": 0,
-         "nlp_solver_max_iter": 30,
-    }
+    solver = Solver.ACADOS()
+    solver.set_convergence_tolerance(1e-10)
+    solver._set_nlp_solver_tol_stat = 1e-8
+    solver.set_integrator_type("IRK")
+    solver.set_nlp_solver_type("SQP")
+    solver.set_sim_method_num_steps(1)
+    solver.set_print_level(0)
+    solver.set_maximum_iterations(30)
 
-    return mhe, solver_options
+    return mhe, solver
 
 
 def update_mhe(mhe, i, _, q_ref, ns_mhe, rt_ratio, final_time_index):

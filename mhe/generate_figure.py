@@ -84,20 +84,15 @@ def generate_data():
     ocp.update_objectives(objectives)
 
     # Initialize the solver options
-    sol = ocp.solve(
-        solver=Solver.ACADOS,
-        show_online_optim=False,
-        solver_options={
-            "nlp_solver_tol_comp": 1e-10,
-            "nlp_solver_tol_eq": 1e-10,
-            "nlp_solver_tol_stat": 1e-8,
-            "integrator_type": "IRK",
-            "nlp_solver_type": "SQP",
-            "sim_method_num_steps": 1,
-            "print_level": 0,
-            "nlp_solver_max_iter": 30,
-        },
-    )
+    solver = Solver.ACADOS()
+    solver.set_convergence_tolerance(1e-10)
+    solver.set_sim_method_num_steps(1)
+    solver.set_maximum_iterations(30)
+    solver._nlp_solver_tol_stat = 1e-8
+    solver.set_integrator_type("IRK")
+    solver.set_nlp_solver_type("SQP")
+    solver.set_print_level(0)
+    sol = ocp.solve(solver)
 
     # Set solutions and set initial guess for next optimisation
     x0, u0, x_est[:, 0], u_est[:, 0] = warm_start_mhe(sol)
@@ -118,15 +113,9 @@ def generate_data():
         ocp.update_objectives(objectives)
 
         # Solve problem
-        sol = ocp.solve(
-            solver=Solver.ACADOS,
-            show_online_optim=False,
-            solver_options={
-                "nlp_solver_tol_comp": 1e-6,
-                "nlp_solver_tol_eq": 1e-6,
-                "nlp_solver_tol_stat": 1e-5,
-            },
-        )
+        solver = Solver.ACADOS()
+        solver.set_convergence_tolerance(1e-6)
+        sol = ocp.solve(solver)
         # Set solutions and set initial guess for next optimisation
         x0, u0, x_out, u_out = warm_start_mhe(sol)
         x_est[:, i] = x_out

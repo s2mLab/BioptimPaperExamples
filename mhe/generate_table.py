@@ -31,14 +31,13 @@ def generate_table(out):
     x_ref = np.concatenate((generate_noise(biorbd_model, q_ref, q_noise), dq_ref) if use_noise else (q_ref, dq_ref))
 
     # Initialize MHE
-    mhe, solver_options = prepare_mhe(biorbd_model=biorbd_model, final_time=t_mhe, n_shooting=ns_mhe, x_ref=x_ref, rt_ratio=rt_ratio)
+    mhe, solver = prepare_mhe(biorbd_model=biorbd_model, final_time=t_mhe, n_shooting=ns_mhe, x_ref=x_ref, rt_ratio=rt_ratio)
     final_time_index = x_ref[:, ::rt_ratio].shape[1] - ns_mhe
 
     # Solve the program
     tic = time()  # Save initial time
     sol = mhe.solve(
-        lambda mhe, i, sol: update_mhe(mhe, i, sol, q_ref, ns_mhe, rt_ratio, final_time_index),
-        solver_options=solver_options
+        lambda mhe, i, sol: update_mhe(mhe, i, sol, q_ref, ns_mhe, rt_ratio, final_time_index), solver=solver
     )
     toc = time() - tic
 

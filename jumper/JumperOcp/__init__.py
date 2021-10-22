@@ -16,6 +16,7 @@ from bioptim import (
     PhaseTransitionList,
     BiMappingList,
     ControlType,
+    Solver,
 )
 
 from .jumper import Jumper
@@ -73,7 +74,7 @@ class JumperOcp:
             phase_transitions=self.phase_transitions,
             n_threads=n_thread,
             control_type=self.control_type,
-            ode_solver=OdeSolver.COLLOCATION()
+            ode_solver=OdeSolver.COLLOCATION(),
         )
 
     def _set_initial_states(self):
@@ -300,28 +301,24 @@ class JumperOcp:
             return sol
         else:
             sol = None
+            solver = Solver.IPOPT()
+            solver.set_linear_solver(linear_solver)
+            solver.set_print_level(0)
+
             if limit_memory_max_iter > 0:
-                sol = self.ocp.solve(
-                    show_online_optim=exact_max_iter == 0 and not force_no_graph,
-                    solver_options={
-                        "hessian_approximation": "limited-memory",
-                        "max_iter": limit_memory_max_iter,
-                        "linear_solver": linear_solver,
-                        "print_level": 0,
-                    },
-                )
+                solver.set_hessian_approximation("limited-memory")
+                solver.set_maximum_iterations(limit_memory_max_iter)
+                solver.show_online_optim = exact_max_iter == 0 and not force_no_graph
+                sol = self.ocp.solve(solver)
+
             if limit_memory_max_iter > 0 and exact_max_iter > 0:
                 self.ocp.set_warm_start(sol)
+
             if exact_max_iter > 0:
-                sol = self.ocp.solve(
-                    show_online_optim=True and not force_no_graph,
-                    solver_options={
-                        "hessian_approximation": "exact",
-                        "max_iter": exact_max_iter,
-                        "warm_start_init_point": "yes",
-                        "linear_solver": linear_solver,
-                        "print_level": 0,
-                    },
-                )
+                solver.set_hessian_approximation("exact")
+                solver.set_maximum_iterations(exact_max_iter)
+                solver.set_warm_start_options()
+                solver.show_online_optim = not force_no_graph
+                sol = self.ocp.solve(solver)
 
             return sol

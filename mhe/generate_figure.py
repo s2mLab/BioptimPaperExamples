@@ -30,7 +30,6 @@ if __name__ == "__main__":
     # --- Prepare and solve MHE --- #
     np.random.seed(450)
     use_noise = True  # True to add noise on reference joint angles
-    use_excitations = False
     q_noise_lvl = 4
     t = 8
     ns = 800
@@ -50,11 +49,6 @@ if __name__ == "__main__":
         else (q_ref_no_noise, dq_ref_no_noise)
     )
 
-    if use_excitations:
-        x_ref_no_noise = np.concatenate((x_ref_no_noise, act_ref_no_noise), axis=0)
-        x_ref = np.concatenate((x_ref, act_ref_no_noise), axis=0)
-        act_ref = act_ref_no_noise
-
     q_ref, dq_ref = x_ref[: biorbd_model.nbQ(), :], x_ref[biorbd_model.nbQ() : biorbd_model.nbQ() * 2, :]
 
     # Initialize MHE
@@ -65,7 +59,6 @@ if __name__ == "__main__":
         x_ref=x_ref,
         rt_ratio=rt_ratio,
         use_noise=use_noise,
-        use_excitations=use_excitations,
     )
 
     final_time_index = x_ref[:, ::rt_ratio].shape[1] - ns_mhe
@@ -82,12 +75,10 @@ if __name__ == "__main__":
 
     # Show some statistics
     q_est, dq_est, muscle_controls_est = sol.states["q"], sol.states["qdot"], sol.controls["muscles"]
-    muscle_controls_ref = exc_ref_no_noise if use_excitations else act_ref_no_noise
-    muscle_force = muscle_force_func(biorbd_model, use_excitations=use_excitations)
-    act_est = sol.states["muscles"] if use_excitations else []
-    act_ref = act_ref_no_noise if use_excitations else []
-    force_est = np.array(muscle_force(q_est, dq_est, act_est, muscle_controls_est))
-    force_ref = np.array(muscle_force(q_ref_no_noise, dq_ref_no_noise, act_ref, muscle_controls_ref))
+    muscle_controls_ref = act_ref_no_noise
+    muscle_force = muscle_force_func(biorbd_model)
+    force_est = np.array(muscle_force(q_est, dq_est, [], muscle_controls_est))
+    force_ref = np.array(muscle_force(q_ref_no_noise, dq_ref_no_noise, [], muscle_controls_ref))
     final_offset = 5  # Number of last nodes to ignore when calculate RMSE
     init_offset = 5  # Number of initial nodes to ignore when calculate RMSE
     offset = ns_mhe
@@ -152,14 +143,14 @@ if __name__ == "__main__":
             )
 
     # ----- Plot muscle force -----#
-    muscles_names = ["Tri Long", "Delt Middle", "Infraspin", "Bic Short"]
+    muscles_names = ["Tri long", "Delt middle", "Infraspin", "Bic short"]
     fest_to_plot = force_est[[6, 13, 15, 18], :]
     fref_to_plot = force_ref[[6, 13, 15, 18], :]
     for i in range(len(muscles_names)):
         fig = plt.subplot(grid[1, i])
         plt.xlabel("Time (s)", fontsize=size_police)
         if i == 0:
-            plt.ylabel("Muscle Force(N)", fontsize=size_police)
+            plt.ylabel("Muscle force (N)", fontsize=size_police)
         plt.plot(t_u, fest_to_plot[i, init_offset:-final_offset])
         plt.plot(t_u, fref_to_plot[i, init_offset : -ns_mhe - final_offset], alpha=0.8)
         plt.title(muscles_names[i], fontsize=size_police)

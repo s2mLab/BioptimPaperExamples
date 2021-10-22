@@ -61,13 +61,13 @@ if __name__ == "__main__":
     """
     Prepare and solve and animate a reaching task ocp
     """
-    use_ipopt = True
-    use_excitations = False
+    use_ipopt = False
+    use_excitations = True
     use_collocation = False
     if use_excitations:
         weights = np.array([10, 1, 10, 100000, 1]) if not use_ipopt else np.array([10, 0.1, 10, 10000, 0.1])
     else:
-        weights = np.array([100, 1, 1, 100000, 1]) if not use_ipopt else np.array([100, 1, 1, 100000, 1])
+        weights = np.array([100, 1, 1, 100000, 1]) if not use_ipopt else np.array([10, 1, 1, 100000, 1])
     model_path = "/".join(__file__.split("/")[:-1]) + "/models/arm26.bioMod"
     biorbd_model = biorbd.Model(model_path)
     ocp = prepare_ocp(
@@ -111,4 +111,5 @@ if __name__ == "__main__":
         show_local_ref_frame=False,
         show_global_center_of_mass=False,
         show_segments_center_of_mass=False,
+        show_global_ref_frame=False,
     )

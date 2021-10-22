@@ -116,9 +116,9 @@ def define_objective(target_q: np.array, iteration: int, rt_ratio: int, ns_mhe: 
     """
     objectives = ObjectiveList()
     if use_noise is not True:
-        weight = {"track_state": 10000, "min_control": 100, "min_dq": 100, "min_q": 100, "min_act": 10}
+        weight = {"track_state": 10000, "min_control": 100, "min_dq": 100, "min_q": 100}
     else:
-        weight = {"track_state": 1000, "min_control": 10, "min_dq": 10, "min_q": 10, "min_act": 10}
+        weight = {"track_state": 1000, "min_control": 10, "min_dq": 10, "min_q": 10}
 
     objectives.add(
         ObjectiveFcn.Lagrange.MINIMIZE_CONTROL, key="muscles", weight=weight["min_control"], multi_thread=False

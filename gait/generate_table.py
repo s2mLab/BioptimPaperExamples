@@ -44,17 +44,13 @@ def generate_table(out):
 
     # --- Solve the program --- #
     tic = time()
-    sol = ocp.solve(
-        solver=Solver.IPOPT,
-        solver_options={
-            "tol": 1e-3,
-            "max_iter": 1000,
-            "hessian_approximation": "exact",
-            "limited_memory_max_history": 50,
-            "linear_solver": "ma57",
-            "print_level": 0
-        },
-    )
+    solver = Solver.IPOPT()
+    solver.set_linear_solver("ma57")
+    solver.set_convergence_tolerance(1e-3)
+    solver.set_hessian_approximation("exact")
+    solver.set_maximum_iterations(3000)
+    solver.show_online_optim = True
+    sol = ocp.solve(solver=solver)
     toc = time() - tic
     sol_merged = sol.merge_phases()
 

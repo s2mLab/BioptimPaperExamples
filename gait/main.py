@@ -54,30 +54,28 @@ if __name__ == "__main__":
         CoP=cop_ref,
         nb_threads=8,
     )
-    solver = Solver.IPOPT
+
     tic = time()
     # --- Solve the program --- #
-    sol = ocp.solve(
-        solver=solver,
-        solver_options={
-            "tol": 1e-3,
-            "max_iter": 1,
-            "hessian_approximation": "exact",
-            "limited_memory_max_history": 50,
-            "linear_solver": "mumps",
-        },
-        show_online_optim=False,
-    )
+    solver = Solver.IPOPT()
+    solver.set_linear_solver("ma57")
+    solver.set_convergence_tolerance(1e-3)
+    solver.set_hessian_approximation("exact")
+    solver.set_maximum_iterations(3000)
+    solver.show_online_optim=True
+    sol = ocp.solve(solver=solver)
     toc = time() - tic
+
     sol_ss = sol.integrate(shooting_type=Shooting.SINGLE_CONTINUOUS, merge_phases=False)
     ss_err_trans = np.sqrt(np.mean((sol_ss.states[-1]["q"][:3, -1] - sol.states[-1]["q"][:3, -1]) ** 2))
     ss_err_rot = np.sqrt(np.mean((sol_ss.states[-1]["q"][3:, -1] - sol.states[-1]["q"][3:, -1]) ** 2))
 
     print("*********************************************")
-    print(f"Problem solved with {solver.value}")
+    # print(f"Problem solved with {solver.value}")
     print(f"Solving time : {toc} s")
     print(f"Single shooting error for translation: {ss_err_trans/1000} mm")
     print(f"Single shooting error for rotation: {ss_err_rot * 180/np.pi} degrees")
+    ocp.save(sol, "gait.bo")
 
     # --- Show results --- #
     sol.animate(
@@ -85,7 +83,8 @@ if __name__ == "__main__":
         background_color=(1, 1, 1),
         show_local_ref_frame=False,
     )
-    # sol.graphs()
+    sol.graphs()
+    sol.print()
 
     # --- Save results --- #
     ocp.save(sol, "gait.bo")

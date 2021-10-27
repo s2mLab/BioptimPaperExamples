@@ -16,6 +16,7 @@ from bioptim import (
     PhaseTransitionList,
     BiMappingList,
     ControlType,
+    Solver,
 )
 
 from .jumper import Jumper
@@ -73,7 +74,7 @@ class JumperOcp:
             phase_transitions=self.phase_transitions,
             n_threads=n_thread,
             control_type=self.control_type,
-            ode_solver=OdeSolver.RK8()
+            ode_solver=OdeSolver.COLLOCATION(),
         )
 
     def _set_initial_states(self):
@@ -104,13 +105,8 @@ class JumperOcp:
         for i in range(self.n_phases):
             self.constraints.add(ConstraintFcn.TORQUE_MAX_FROM_Q_AND_QDOT, phase=i, node=self.control_nodes, min_torque=self.jumper.tau_min)
 
-        # Positivity of CoM_dot on z axis prior the take-off
+        # Positivity of CoM_dot on z axis prior the take-off (to make sure it jumps upward)
         self.constraints.add(com_dot_z, phase=self.takeoff, node=Node.END, min_bound=0, max_bound=np.inf)
-
-        # Constraint arm positivity (prevent from local minimum with arms in the back)
-        self.constraints.add(
-            ConstraintFcn.TRACK_STATE, key="q", phase=self.takeoff, node=Node.END, index=3, min_bound=0, max_bound=np.inf
-        )
 
         # Floor constraints for flat foot phases
         for p in self.jumper.flat_foot_phases:
@@ -192,7 +188,6 @@ class JumperOcp:
                     derivative=True,
                     phase=p,
                 )
-
         for p in range(2, self.n_phases):
             self.objective_functions.add(
                 ObjectiveFcn.Lagrange.MINIMIZE_STATE,
@@ -265,27 +260,6 @@ class JumperOcp:
         if self.n_phases >= 5:  # 1 contact to 2 contacts
             self.phase_transitions.add(PhaseTransitionFcn.IMPACT, phase_pre_idx=3)
 
-        # if self.n_phases >= 2:  # The contact forces at the end of flat foot equal the beginning of the next phase
-        #     links_0_to_1 = ((0, None), (1, None), (2, 0), (3, 1), (3, 2))
-        #     links_1_to_2 = ((0, None), (1, None), (2, None))
-        #     for link in links_0_to_1:
-        #         self.constraints.add(
-        #             contact_force_continuity,
-        #             phase=0,
-        #             node=Node.TRANSITION,
-        #             idx_pre=link[0],
-        #             idx_post=link[1],
-        #         )
-        #
-        #     for link in links_1_to_2:
-        #         self.constraints.add(
-        #             contact_force_continuity,
-        #             phase=1,
-        #             node=Node.TRANSITION,
-        #             idx_pre=link[0],
-        #             idx_post=link[1],
-        #         )
-
         if self.n_phases >= 3:  # The end of the aerial
             self.constraints.add(
                 marker_on_floor,
@@ -327,28 +301,24 @@ class JumperOcp:
             return sol
         else:
             sol = None
+            solver = Solver.IPOPT()
+            solver.set_linear_solver(linear_solver)
+            solver.set_print_level(0)
+
             if limit_memory_max_iter > 0:
-                sol = self.ocp.solve(
-                    show_online_optim=exact_max_iter == 0 and not force_no_graph,
-                    solver_options={
-                        "hessian_approximation": "limited-memory",
-                        "max_iter": limit_memory_max_iter,
-                        "linear_solver": linear_solver,
-                        "print_level": 0,
-                    },
-                )
+                solver.set_hessian_approximation("limited-memory")
+                solver.set_maximum_iterations(limit_memory_max_iter)
+                solver.show_online_optim = exact_max_iter == 0 and not force_no_graph
+                sol = self.ocp.solve(solver)
+
             if limit_memory_max_iter > 0 and exact_max_iter > 0:
                 self.ocp.set_warm_start(sol)
+
             if exact_max_iter > 0:
-                sol = self.ocp.solve(
-                    show_online_optim=True and not force_no_graph,
-                    solver_options={
-                        "hessian_approximation": "exact",
-                        "max_iter": exact_max_iter,
-                        "warm_start_init_point": "yes",
-                        "linear_solver": linear_solver,
-                        "print_level": 0,
-                    },
-                )
+                solver.set_hessian_approximation("exact")
+                solver.set_maximum_iterations(exact_max_iter)
+                solver.set_warm_start_options()
+                solver.show_online_optim = not force_no_graph
+                sol = self.ocp.solve(solver)
 
             return sol

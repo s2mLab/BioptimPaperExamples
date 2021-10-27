@@ -1,5 +1,6 @@
 from time import time
 from numpy import random
+from bioptim import Solver
 
 from .somersault.ocp import prepare_ocp, prepare_ocp_quaternion
 
@@ -14,14 +15,13 @@ def generate_table(out):
 
     # --- Solve the program --- #
     tic = time()
-    sol_euler = ocp_euler.solve(
-        solver_options={"max_iter": 1000, "linear_solver": "ma57", "print_level": 0}
-    )
+    solver = Solver.IPOPT()
+    solver.set_linear_solver("ma57")
+    solver.set_print_level(0)
+    sol_euler = ocp_euler.solve(solver)
     toc_euler = time() - tic
     tic = time()
-    sol_quaternion = ocp_quaternion.solve(
-        solver_options={"max_iter": 1000, "linear_solver": "ma57", "print_level": 0}
-    )
+    sol_quaternion = ocp_quaternion.solve(solver)
     toc_quaternion = time() - tic
 
     out.nx = sol_euler.states["all"].shape[0]

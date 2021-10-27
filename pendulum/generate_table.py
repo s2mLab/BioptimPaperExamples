@@ -13,11 +13,13 @@ def generate_table(out):
 
     # IPOPT
     ocp = prepare_ocp(biorbd_model_path=model_path)
-    opts = {"linear_solver": "ma57",  "print_level": 0}
+    solver = Solver.IPOPT()
+    solver.set_linear_solver("ma57")
+    solver.set_print_level(0)
 
     # --- Solve the program --- #
     tic = time()
-    sol = ocp.solve(solver=Solver.IPOPT, solver_options=opts)
+    sol = ocp.solve(solver=solver)
     toc = time() - tic
     sol_merged = sol.merge_phases()
 

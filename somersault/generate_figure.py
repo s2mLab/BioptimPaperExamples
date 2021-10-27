@@ -8,7 +8,7 @@ from somersault.ocp import prepare_ocp, prepare_ocp_quaternion
 
 
 def run_ocp(is_quaternion):
-    np.random.seed(0)
+    np.random.seed(1)
 
     if is_quaternion:
         ocp = prepare_ocp_quaternion(root_folder + "/models/JeChMesh_RootQuat.bioMod", final_time=1.5, n_shooting=100)
@@ -16,11 +16,13 @@ def run_ocp(is_quaternion):
         ocp = prepare_ocp(root_folder + "/models/JeChMesh_8DoF.bioMod", final_time=1.5, n_shooting=100)
 
     sol = ocp.solve()
+    sol.print()
+    sol.animate()
     return sol.states
 
 
 root_folder = "/".join(__file__.split("/")[:-1])
-q_euler = run_ocp(False)['q']
+# q_euler = run_ocp(False)['q']
 q_quaternion = run_ocp(True)['q']
 
 time_vector = np.linspace(0, 100, 101)

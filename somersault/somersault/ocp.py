@@ -21,7 +21,7 @@ from bioptim import (
 )
 
 
-def prepare_ocp(biorbd_model_path: str, final_time: float, n_shooting: int) -> OptimalControlProgram:
+def prepare_ocp(biorbd_model_path: str, final_time: float, n_shooting: int, is_collocation: bool) -> OptimalControlProgram:
     """
     Prepare the Euler version of the ocp
     Parameters
@@ -36,6 +36,12 @@ def prepare_ocp(biorbd_model_path: str, final_time: float, n_shooting: int) -> O
     -------
     The OptimalControlProgram ready to be solved
     """
+
+    # --- Solver choice --- #
+    if is_collocation:
+        ode_solver = OdeSolver.COLLOCATION()
+    else:
+        ode_solver = OdeSolver.RK4()
 
     # --- Options --- #
     np.random.seed(0)
@@ -162,11 +168,11 @@ def prepare_ocp(biorbd_model_path: str, final_time: float, n_shooting: int) -> O
         constraints,
         n_threads=8,
         variable_mappings=mapping,
-        ode_solver=OdeSolver.RK4(),
+        ode_solver=ode_solver,
     )
 
 
-def prepare_ocp_quaternion(biorbd_model_path, final_time, n_shooting):
+def prepare_ocp_quaternion(biorbd_model_path: str, final_time: float, n_shooting: int, is_collocation: bool):
     """
     Prepare the quaternion version of the ocp
     Parameters
@@ -181,6 +187,12 @@ def prepare_ocp_quaternion(biorbd_model_path, final_time, n_shooting):
     -------
     The OptimalControlProgram ready to be solved
     """
+
+    # --- Solver choice --- #
+    if is_collocation:
+        ode_solver = OdeSolver.COLLOCATION()
+    else:
+        ode_solver = OdeSolver.RK4()
 
     # --- Options --- #
     np.random.seed(0)
@@ -311,7 +323,7 @@ def prepare_ocp_quaternion(biorbd_model_path, final_time, n_shooting):
         constraints,
         n_threads=8,
         variable_mappings=mapping,
-        ode_solver=OdeSolver.RK4(),
+        ode_solver=ode_solver,
     )
 
 

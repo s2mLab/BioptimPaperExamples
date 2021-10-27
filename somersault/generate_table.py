@@ -8,34 +8,63 @@ from .somersault.ocp import prepare_ocp, prepare_ocp_quaternion
 def generate_table(out):
     random.seed(0)
     root_folder = "/".join(__file__.split("/")[:-1])
-    ocp_euler = prepare_ocp(root_folder + "/models/JeChMesh_8DoF.bioMod", final_time=1.5, n_shooting=100)
-    ocp_quaternion = prepare_ocp_quaternion(
-        root_folder + "/models/JeChMesh_RootQuat.bioMod", final_time=1.5, n_shooting=100
+    ocp_euler_RK4 = prepare_ocp(root_folder + "/models/JeChMesh_8DoF.bioMod", final_time=1.5, n_shooting=100, is_collocation=False)
+    ocp_euler_COLLOCATIONS = prepare_ocp(root_folder + "/models/JeChMesh_8DoF.bioMod", final_time=1.5, n_shooting=100, is_collocation=True)
+    ocp_quaternion_RK4 = prepare_ocp_quaternion(
+        root_folder + "/models/JeChMesh_RootQuat.bioMod", final_time=1.5, n_shooting=100, is_collocation=False
+    )
+    ocp_quaternion_COLLOCATIONS = prepare_ocp_quaternion(
+        root_folder + "/models/JeChMesh_RootQuat.bioMod", final_time=1.5, n_shooting=100, is_collocation=True
     )
 
     # --- Solve the program --- #
-    tic = time()
     solver = Solver.IPOPT()
-    solver.set_linear_solver("ma57")
     solver.set_print_level(0)
-    sol_euler = ocp_euler.solve(solver)
-    toc_euler = time() - tic
+
+    # Euler RK4
     tic = time()
-    sol_quaternion = ocp_quaternion.solve(solver)
-    toc_quaternion = time() - tic
+    sol_euler_RK4 = ocp_euler_RK4.solve(solver)
+    toc_euler_RK4 = time() - tic
 
-    out.nx = sol_euler.states["all"].shape[0]
-    out.nu = sol_euler.controls["all"].shape[0]
-    out.ns = sol_euler.ns[0]
+    # Euler collocations
+    tic = time()
+    sol_euler_COLLOCATIONS = ocp_euler_COLLOCATIONS.solve(solver)
+    toc_euler_COLLOCATIONS = time() - tic
 
-    out.solver.append(out.Solver("Euler"))
-    out.solver[0].n_iteration = sol_euler.iterations
-    out.solver[0].cost = sol_euler.cost
-    out.solver[0].convergence_time = toc_euler
-    out.solver[0].compute_error_single_shooting(sol_euler, 1)
+    # Quaternion
+    tic = time()
+    sol_quaternion_RK4 = ocp_quaternion_RK4.solve(solver)
+    toc_quaternion_RK4 = time() - tic
 
-    out.solver.append(out.Solver("Quaternion"))
-    out.solver[1].n_iteration = sol_quaternion.iterations
-    out.solver[1].cost = sol_quaternion.cost
-    out.solver[1].convergence_time = toc_quaternion
-    out.solver[1].compute_error_single_shooting(sol_quaternion, 1)
+    # Quaternion
+    tic = time()
+    sol_quaternion_COLLOCATIONS = ocp_quaternion_COLLOCATIONS.solve(solver)
+    toc_quaternion_COLLOCATIONS = time() - tic
+
+    out.nx = sol_euler_RK4.states["all"].shape[0]
+    out.nu = sol_euler_RK4.controls["all"].shape[0]
+    out.ns = sol_euler_RK4.ns[0]
+
+    out.solver.append(out.Solver("Euler RK4"))
+    out.solver[0].n_iteration = sol_euler_RK4.iterations
+    out.solver[0].cost = sol_euler_RK4.cost
+    out.solver[0].convergence_time = toc_euler_RK4
+    out.solver[0].compute_error_single_shooting(sol_euler_RK4, 1)
+
+    out.solver.append(out.Solver("Euler Collocations"))
+    out.solver[1].n_iteration = sol_euler_COLLOCATIONS.iterations
+    out.solver[1].cost = sol_euler_COLLOCATIONS.cost
+    out.solver[1].convergence_time = toc_euler_COLLOCATIONS
+    out.solver[1].compute_error_single_shooting(sol_euler_COLLOCATIONS, 1)
+
+    out.solver.append(out.Solver("Quaternion RK4"))
+    out.solver[2].n_iteration = sol_quaternion_RK4.iterations
+    out.solver[2].cost = sol_quaternion_RK4.cost
+    out.solver[2].convergence_time = toc_quaternion_RK4
+    out.solver[2].compute_error_single_shooting(sol_quaternion_RK4, 1)
+
+    out.solver.append(out.Solver("Quaternion Collocations"))
+    out.solver[3].n_iteration = sol_quaternion_COLLOCATIONS.iterations
+    out.solver[3].cost = sol_quaternion_COLLOCATIONS.cost
+    out.solver[3].convergence_time = toc_quaternion_COLLOCATIONS
+    out.solver[3].compute_error_single_shooting(sol_quaternion_COLLOCATIONS, 1)

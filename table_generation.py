@@ -51,15 +51,16 @@ class TableOCP:
                 self.single_shoot_error_t = -1
                 self.single_shoot_error_r = -1
 
-            def print(self):
+            def print(self, divergence_threashold):
                 print(f"\t\tsolver = {self.name}")
                 print(f"\t\t\titerations = {self.n_iteration}")
                 print(f"\t\t\tcost = {self.cost}")
                 print(f"\t\t\tconvergence_time (s) = {self.convergence_time}")
                 print(f"\t\t\tsingle_shoot_error translation (mm) = {self.single_shoot_error_t}")
                 print(f"\t\t\tsingle_shoot_error rotation (°) = {self.single_shoot_error_r}")
+                print(f"\t\t\tsingle_shoot_time before divergence of {divergence_threashold}(°) = {self.single_shoot_divergence_time}")
 
-            def compute_error_single_shooting(self, sol, duration, use_final_time=False):
+            def compute_error_single_shooting(self, sol, duration, use_final_time=False, divergence_threashold=10):
                 sol_merged = sol.merge_phases()
 
                 if sol_merged.phase_time[-1] < duration and not use_final_time:
@@ -88,13 +89,15 @@ class TableOCP:
                 else:
                     sn_1s = int(sol_int.ns[0] / sol_int.phase_time[-1] * duration)  # shooting node at {duration} second
                 if len(rot_idx) > 0:
-                    self.single_shoot_error_r = (
-                        np.sqrt(
-                            np.mean((sol_int.states["q"][rot_idx, sn_1s] - sol_merged.states["q"][rot_idx, sn_1s]) ** 2)
-                        )
-                        * 180
-                        / np.pi
-                    )
+                    error_r = sol_int.states["q"][rot_idx, :] - sol_merged.states["q"][rot_idx, :]
+                    self.single_shoot_error_r = (np.sqrt(np.mean(error_r[:, sn_1s] ** 2)) * 180 / np.pi)
+                    self.divergence_node = []
+                    self.single_shoot_divergence_time = []
+                    for i in range(error_r.shape[1]):
+                        if np.any(np.abs(error_r[:, i]) > divergence_threashold * np.pi / 180):
+                            self.divergence_node = i
+                            self.single_shoot_divergence_time = sol_int.phase_time[-1] / sol_int.ns[0] * i
+                            break
                 else:
                     self.single_shoot_error_r = "N.A."
                 if len(trans_idx) > 0:

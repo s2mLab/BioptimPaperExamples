@@ -81,7 +81,7 @@ class TableOCP:
                 rot_idx = np.array(list(set(rot_idx)))
                 trans_idx = np.array(list(set(trans_idx)))
 
-                sol_int = sol.integrate(shooting_type=Shooting.SINGLE_CONTINUOUS, merge_phases=False, keep_intermediate_points=False)
+                sol_int = sol.integrate(shooting_type=Shooting.SINGLE_CONTINUOUS, merge_phases=False, keep_intermediate_points=False, use_scipy_integrator=True)
                 sol_int = sol_int.merge_phases()
                 if use_final_time:
                     sn_1s = -1
@@ -113,7 +113,7 @@ class TableOCP:
 table = TableOCP()
 
 # table.add("gait")  # requires 16Gb of RAM and takes time to converge (~4h)
-# table.add("jumper")  # takes time to converge (~30 min)
+# table.add("jumper")  # takes time to converge (~5 min)
 table.add("mhe")
 table.add("pendulum")
 table.add("pointing")

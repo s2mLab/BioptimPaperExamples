@@ -7,20 +7,15 @@ external_forces 0
 // Informations about PelvisTrans segment
 	// Segment
 	segment	PelvisRot
-		RT
-			1    0    0	0.0000000000
-			0    1    0	0.0000000000
-			0    0    1	0.0000000000
-			0.0000000000	0.0000000000	0.0000000000	1.0000000000
 		translations	xyz
 		rotations	xyz
-		mass	0.0000000001
+		mass	20.3888
 		inertia
-			0.0000000001	0.0000000000	0.0000000000
-			0.0000000000	0.0000000001	0.0000000000
-			0.0000000000	0.0000000000	0.0000000001
-		com		0.0000000000		0.0000000000		0.0000000000
-		meshfile Mesh_file_JeCh10/pelvis.bioMesh
+			0.4918	0.0000000000	0.0000000000
+			0.0000000000	0.5645	0.0000000000
+			0.0000000000	0.0000000000	0.2255
+		com		0.0000000000		0.0000000000		0.1760
+		meshfile Mesh_stl_JeCh8/pelvis.stl
 	endsegment
 
 	// Markers
@@ -30,27 +25,7 @@ external_forces 0
 			technical 1
 		endmarker
 
-/*
-// Informations about PelvisRot segment
-	// Segment
-	segment	PelvisRot
-		parent	PelvisTrans
-		RT
-			0    0    0	0
-			0    0    0	0
-			0    0    0	0
-			0    0    0	1
-		rotations	xyz
-		mass	0.0000000001
-		inertia
-			0.0000000001	0.0000000000	0.0000000000
-			0.0000000000	0.0000000001	0.0000000000
-			0.0000000000	0.0000000000	0.0000000001
-		com		0.0000000000		0.0000000000		0.0000000000
-		// meshfile Mesh_file_JeCh10/pelvis.bioMesh
-	endsegment
-*/
-
+	
 // Informations about Thorax segment
 	// Segment
 	segment	Thorax
@@ -66,7 +41,7 @@ external_forces 0
 			0.0000000000	0.5645	0.0000000000
 			0.0000000000	0.0000000000	0.2255
 		com		0         0    0.1760
-		meshfile Mesh_file_JeCh10/thorax.bioMesh
+		meshfile Mesh_stl_JeCh8/thorax.stl
 	endsegment
 
 
@@ -85,7 +60,7 @@ external_forces 0
 			0.0000000000	0.0974	0.0000000000
 			0.0000000000	0.0000000000	0.0203
 		com		0         0    0.1182
-	    meshfile Mesh_file_JeCh10/tete.bioMesh
+	    meshfile Mesh_stl_JeCh8/tete.stl
 	endsegment
 
 
@@ -123,7 +98,7 @@ external_forces 0
 			0.0000000000	0.0134	0.0000000000
 			0.0000000000	0.0000000000	0.0031
 		com		0         0    -0.1214
-		meshfile Mesh_file_JeCh10/BrasD.bioMesh
+		meshfile Mesh_stl_JeCh8/bras.stl
 	endsegment
 
 
@@ -142,7 +117,7 @@ external_forces 0
 			0.0000000000	0.0065	0.0000000000
 			0.0000000000	0.0000000000	0.0010
 		com		0         0    -0.1248
-		meshfile Mesh_file_JeCh10/ABrasD.bioMesh
+		meshfile Mesh_stl_JeCh8/avantbras.stl
 	endsegment
 
 
@@ -151,17 +126,17 @@ external_forces 0
 	segment	MainD
 		parent	ABrasD
 		RT
-			0.9779455590	0.0350420881	0.2058993337	0.0000003366
-			0.0484240070	0.9209215480	-0.3867280926	0.0000005075
-			-0.2031688933	0.3881694915	0.8989142601	-0.2540782785
-			0.0000000000	0.0000000000	0.0000000000	1.0000000000
+			1	0	0	0.0000003366
+			0	1	0	0.0000005075
+			0	0	1	-0.2540782785
+			0	0	0	1
 		mass	0.5275
 		inertia
 			0.0023 	0.0000000000	0.0000000000
 			0.0000000000	0.0025 	0.0000000000
 			0.0000000000	0.0000000000	0.0003
 		com		0.0255838836	-0.0346156093	-0.0344497047
-		meshfile Mesh_file_JeCh10/MainD.bioMesh
+		meshfile Mesh_stl_JeCh8/main.stl
 	endsegment
 
 
@@ -199,7 +174,7 @@ external_forces 0
 			0.0000000000	0.0134 	0.0000000000
 			0.0000000000	0.0000000000	0.0031
 		com		0         0    -0.1214
-		meshfile Mesh_file_JeCh10/BrasG.bioMesh
+		meshfile Mesh_stl_JeCh8/bras.stl
 	endsegment
 
 
@@ -218,7 +193,7 @@ external_forces 0
 			0.0000000000	0.0065	0.0000000000
 			0.0000000000	0.0000000000	0.0010
 		com		0         0    -0.1248
-		meshfile Mesh_file_JeCh10/ABrasG.bioMesh
+		meshfile Mesh_stl_JeCh8/avantbras.stl
 	endsegment
 
 
@@ -227,10 +202,10 @@ external_forces 0
 	segment	MainG
 		parent	ABrasG
 		RT
-			0.9779455590	0.0350420881	0.2058993337	0.0000003366
-			0.0484240070	0.9209215480	-0.3867280926	0.0000005075
-			-0.2031688933	0.3881694915	0.8989142601	-0.2540782785
-			0.0000000000	0.0000000000	0.0000000000	1.0000000000
+			1	0	0	0.0000003366
+			0	1	0	0.0000005075
+			0	0	1	-0.2540782785
+			0	0	0	1
 			
 		mass	0.5275
 		inertia
@@ -238,7 +213,7 @@ external_forces 0
 			0.0000000000	0.0025 	0.0000000000
 			0.0000000000	0.0000000000	0.0003
 		com		-0.0271839495	0.0277505879	-0.0414542613
-		meshfile Mesh_file_JeCh10/MainG.bioMesh
+		meshfile Mesh_stl_JeCh8/main.stl
 	endsegment
 
 
@@ -257,7 +232,8 @@ external_forces 0
 			0.0000000000	0.1565 	0.0000000000
 			0.0000000000	0.0000000000	0.0382
 		com		 0         0    -0.1855
-		meshfile Mesh_file_JeCh10/CuisseD.bioMesh
+		meshfile Mesh_stl_JeCh8/cuisse.stl
+		meshrt 0 0 0 xyz -0.0777156893 0 0
 	endsegment
 
 
@@ -276,7 +252,8 @@ external_forces 0
 			0.0000000000	0.0565	0.0000000000
 			0.0000000000	0.0000000000	0.0056
 		com		0         0    0.1732
-		meshfile Mesh_file_JeCh10/JambeD.bioMesh
+		meshfile Mesh_stl_JeCh8/jambe.stl
+		meshrt 0 0 0 xyz -0.0777156893-0.0165 0 0
 	endsegment
 
 
@@ -285,9 +262,9 @@ external_forces 0
 	segment	PiedD
 		parent	JambeD
 		RT
-			-0.9505142897	-0.2969732696	0.0912658859	-0.0000731275
-			-0.1242159360	0.0940061044	-0.9877921105	0.0063187126
-			0.2847683024	-0.9502471937	-0.1262429583	0.3813371128
+			-1	0	0	-0.0000731275
+			0	0	-1	0.0063187126
+			0	-1	0	0.3813371128
 			0.0000000000	0.0000000000	0.0000000000	1.0000000000
 		mass	1.2004
 		inertia
@@ -295,7 +272,8 @@ external_forces 0
 			0.0000000000	0.0076 	0.0000000000
 			0.0000000000	0.0000000000	0.0009
 		com		0         0    0.0403
-		meshfile Mesh_file_JeCh10/PiedD.bioMesh
+		meshfile Mesh_stl_JeCh8/pied.stl
+		meshrt 0 0 0 xyz 0.0777156893+0.0165-0.0000731275 0 0
 	endsegment
 
 
@@ -314,7 +292,6 @@ external_forces 0
 			0.0000000000	0.1565	0.0000000000
 			0.0000000000	0.0000000000	0.0382
 		com		 0         0    -0.1855
-		meshfile Mesh_file_JeCh10/CuisseG.bioMesh
 	endsegment
 
 
@@ -333,7 +310,6 @@ external_forces 0
 			0.0000000000	0.0565	0.0000000000
 			0.0000000000	0.0000000000	0.0056
 		com		0         0    0.1732
-		meshfile Mesh_file_JeCh10/JambeG.bioMesh
 	endsegment
 
 
@@ -342,9 +318,9 @@ external_forces 0
 	segment	PiedG
 		parent	JambeG
 		RT
-			-0.8553690247	0.5123695363	-0.0762973759	-0.0278996413
-			0.0050693626	-0.1390003416	-0.9902793578	0.0115025626
-			-0.5179943369	-0.8474410676	0.1162991997	0.3798874443
+			-1	0	0	-0.0278996413
+			0	0	-1	0.0115025626
+			0	-1	0	0.3798874443
 			0.0000000000	0.0000000000	0.0000000000	1.0000000000
 		mass	1.2004
 		inertia
@@ -352,7 +328,6 @@ external_forces 0
 			0.0000000000	0.0076	0.0000000000
 			0.0000000000	0.0000000000	0.0009
 		com		0         0    0.0403
-		meshfile Mesh_file_JeCh10/PiedG.bioMesh
 	endsegment
 
 

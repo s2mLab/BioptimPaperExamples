@@ -53,7 +53,7 @@ def prepare_ocp(biorbd_model_path: str, final_time: float, n_shooting: int, is_c
 
     # Add objective functions
     objective_functions = ObjectiveList()
-    objective_functions.add(ObjectiveFcn.Lagrange.MINIMIZE_STATE, key="qdot", node=Node.ALL, index=5, weight=-1)
+    objective_functions.add(ObjectiveFcn.Lagrange.MINIMIZE_STATE, key="qdot", node=Node.ALL, index=5, weight=-1, quadratic=False)
     objective_functions.add(ObjectiveFcn.Lagrange.MINIMIZE_CONTROL, key="tau", weight=1e-6)
 
     # Dynamics
@@ -204,7 +204,7 @@ def prepare_ocp_quaternion(biorbd_model_path: str, final_time: float, n_shooting
 
     # Add objective functions
     objective_functions = ObjectiveList()
-    objective_functions.add(max_twist_quaternion, custom_type=ObjectiveFcn.Lagrange, weight=-1, node=Node.ALL)
+    objective_functions.add(max_twist_quaternion, custom_type=ObjectiveFcn.Lagrange, weight=-1, node=Node.ALL, quadratic=False)
     objective_functions.add(ObjectiveFcn.Lagrange.MINIMIZE_CONTROL, key="tau", weight=1e-6)
 
     # Dynamics
@@ -329,7 +329,7 @@ def prepare_ocp_quaternion(biorbd_model_path: str, final_time: float, n_shooting
 
 def max_twist_quaternion(pn: PenaltyNode) -> cas.MX:
     val = states_to_euler_rate(pn.nlp.states["q"].mx, pn.nlp.states["qdot"].mx)
-    return BiorbdInterface.mx_to_cx("final_position", val, pn.nlp.states["q"], pn.nlp.states["qdot"])
+    return BiorbdInterface.mx_to_cx("max_twist_quaternion", val, pn.nlp.states["q"], pn.nlp.states["qdot"])
 
 
 def final_position_quaternion(pn: PenaltyNode) -> cas.MX:

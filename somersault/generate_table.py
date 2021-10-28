@@ -36,11 +36,6 @@ def generate_table(out):
     sol_quaternion_RK4 = ocp_quaternion_RK4.solve(solver)
     toc_quaternion_RK4 = time() - tic
 
-    # Quaternion
-    tic = time()
-    sol_quaternion_COLLOCATIONS = ocp_quaternion_COLLOCATIONS.solve(solver)
-    toc_quaternion_COLLOCATIONS = time() - tic
-
     out.nx = sol_euler_RK4.states["all"].shape[0]
     out.nu = sol_euler_RK4.controls["all"].shape[0]
     out.ns = sol_euler_RK4.ns[0]
@@ -62,9 +57,3 @@ def generate_table(out):
     out.solver[2].cost = sol_quaternion_RK4.cost
     out.solver[2].convergence_time = toc_quaternion_RK4
     out.solver[2].compute_error_single_shooting(sol_quaternion_RK4, 1)
-
-    out.solver.append(out.Solver("Quaternion Collocations"))
-    out.solver[3].n_iteration = sol_quaternion_COLLOCATIONS.iterations
-    out.solver[3].cost = sol_quaternion_COLLOCATIONS.cost
-    out.solver[3].convergence_time = toc_quaternion_COLLOCATIONS
-    out.solver[3].compute_error_single_shooting(sol_quaternion_COLLOCATIONS, 1)

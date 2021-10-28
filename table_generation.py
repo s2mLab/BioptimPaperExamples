@@ -129,4 +129,4 @@ pendulum_table(table["pendulum"])
 pointing_table(table["pointing"])
 somersault_table(table["somersault"])
 
-table.print()
+table.print(divergence_threashold=10)

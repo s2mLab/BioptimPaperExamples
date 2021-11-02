@@ -400,15 +400,15 @@ def get_phase_time_shooting_numbers(data, dt):
     phase_time = data.c3d_data.get_time()
     number_shooting_points = []
     for time in phase_time:
-        number_shooting_points.append(int(time / dt) - 1)
+        number_shooting_points.append(int(time / dt))
     return phase_time, number_shooting_points
 
 
-def get_experimental_data(data, number_shooting_points):
-    q_ref = data.dispatch_data(data=data.q, nb_shooting=number_shooting_points)
-    qdot_ref = data.dispatch_data(data=data.qdot, nb_shooting=number_shooting_points)
-    markers_ref = data.dispatch_data(data=data.c3d_data.trajectories, nb_shooting=number_shooting_points)
-    grf_ref = data.dispatch_data(data=data.c3d_data.forces, nb_shooting=number_shooting_points)
-    moments_ref = data.dispatch_data(data=data.c3d_data.moments, nb_shooting=number_shooting_points)
-    cop_ref = data.dispatch_data(data=data.c3d_data.cop, nb_shooting=number_shooting_points)
+def get_experimental_data(data, number_shooting_points, phase_time):
+    q_ref = data.dispatch_data(data=data.q, nb_shooting=number_shooting_points, phase_time=phase_time)
+    qdot_ref = data.dispatch_data(data=data.qdot, nb_shooting=number_shooting_points, phase_time=phase_time)
+    markers_ref = data.dispatch_data(data=data.c3d_data.trajectories, nb_shooting=number_shooting_points, phase_time=phase_time)
+    grf_ref = data.dispatch_data(data=data.c3d_data.forces, nb_shooting=number_shooting_points, phase_time=phase_time)
+    moments_ref = data.dispatch_data(data=data.c3d_data.moments, nb_shooting=number_shooting_points, phase_time=phase_time)
+    cop_ref = data.dispatch_data(data=data.c3d_data.cop, nb_shooting=number_shooting_points, phase_time=phase_time)
     return q_ref, qdot_ref, markers_ref, grf_ref, moments_ref, cop_ref

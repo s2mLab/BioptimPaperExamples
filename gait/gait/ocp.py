@@ -283,19 +283,19 @@ def prepare_ocp(
         contact_index=(1, 2, 5),
         phase=1,
     )
-    constraints.add(  # non slipping y
-        ConstraintFcn.NON_SLIPPING,
-        node=Node.ALL,
-        normal_component_idx=(1, 2, 5),
-        tangential_component_idx=4,
-        static_friction_coefficient=0.2,
-        phase=1,
-    )
     constraints.add(  # non slipping x m5
         ConstraintFcn.NON_SLIPPING,
         node=Node.ALL,
-        normal_component_idx=(2, 5),
+        normal_component_idx=5,
         tangential_component_idx=3,
+        static_friction_coefficient=0.2,
+        phase=1,
+    )
+    constraints.add(  # non slipping y m5
+        ConstraintFcn.NON_SLIPPING,
+        node=Node.ALL,
+        normal_component_idx=5,
+        tangential_component_idx=4,
         static_friction_coefficient=0.2,
         phase=1,
     )
@@ -324,15 +324,7 @@ def prepare_ocp(
         contact_index=(2, 4, 5),
         phase=2,
     )
-    constraints.add(
-        ConstraintFcn.NON_SLIPPING,
-        node=Node.ALL,
-        normal_component_idx=(2, 4, 5),
-        tangential_component_idx=1,
-        static_friction_coefficient=0.2,
-        phase=2,
-    )
-    constraints.add(  # non slipping x m1
+    constraints.add( # non slipping x m1
         ConstraintFcn.NON_SLIPPING,
         node=Node.ALL,
         normal_component_idx=2,
@@ -340,14 +332,22 @@ def prepare_ocp(
         static_friction_coefficient=0.2,
         phase=2,
     )
-    # constraints.add(  # non slipping x m5
-    #     ConstraintFcn.NON_SLIPPING,
-    #     node=Node.ALL,
-    #     normal_component_idx=4,
-    #     tangential_component_idx=3,
-    #     static_friction_coefficient=0.2,
-    #     phase=2,
-    # )
+    constraints.add(  # non slipping y m1
+        ConstraintFcn.NON_SLIPPING,
+        node=Node.ALL,
+        normal_component_idx=2,
+        tangential_component_idx=1,
+        static_friction_coefficient=0.2,
+        phase=2,
+    )
+    constraints.add(  # non slipping x m5
+        ConstraintFcn.NON_SLIPPING,
+        node=Node.ALL,
+        normal_component_idx=4,
+        tangential_component_idx=3,
+        static_friction_coefficient=0.2,
+        phase=2,
+    )
 
     # Phase Transitions
     phase_transitions = PhaseTransitionList()

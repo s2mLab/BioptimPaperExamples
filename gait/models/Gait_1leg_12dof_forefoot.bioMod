@@ -115,9 +115,9 @@ segment femur_r
         rangesQ    -pi/9  pi/9 
                    -pi/9  pi/9 
                    -pi/4  pi/4
-        rangesQdot -4    4.5 
-                   -4    4.5  
-                   -4    4.5
+        rangesQdot -7    7
+                   -7    7
+                   -7    7
 	mass	9.8454
 	inertia
 		0.14317	0	0
@@ -352,18 +352,6 @@ marker	R_FMP5
 	position	0.096359	0.00353103	0.0532144
 	technical	1
 endmarker
-
-// ---- Contact
-//contact    Meta_1_r
-//	parent    foot_marker_r
-//	position    0.144628	 -0.02	 -0.0223195
-//	axis    xz
-//endcontact
-//contact    Meta_5_r
-//	parent    foot_marker_r
-//	position   0.096359 	-0.02	 0.0432144
-//	axis    xyz
-//endcontact
 
 contact    Meta_1_r
 	parent      foot_marker_r

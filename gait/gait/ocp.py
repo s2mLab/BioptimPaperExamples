@@ -175,13 +175,14 @@ def prepare_ocp(
     markers_foot = [19, 20, 21, 22, 23, 24, 25]
     objective_functions = ObjectiveList()
     for p in range(nb_phases):
-        objective_functions.add(ObjectiveFcn.Lagrange.TRACK_STATE, key="q", node=Node.ALL, target=q_ref[p], phase=p)
+        # objective_functions.add(ObjectiveFcn.Lagrange.TRACK_STATE, key="q", node=Node.ALL, target=q_ref[p], quadratic=True, phase=p)
         objective_functions.add(
             ObjectiveFcn.Lagrange.TRACK_MARKERS,
             node=Node.ALL,
             weight=1000,
             marker_index=markers_anat,
             target=markers_ref[p][:, markers_anat, :],
+            quadratic=True,
             phase=p,
         )
         objective_functions.add(
@@ -190,14 +191,16 @@ def prepare_ocp(
             weight=100000,
             marker_index=markers_pelvis,
             target=markers_ref[p][:, markers_pelvis, :],
+            quadratic=True,
             phase=p,
         )
         objective_functions.add(
             ObjectiveFcn.Lagrange.TRACK_MARKERS,
             node=Node.ALL,
-            weight=100000,
+            weight=10000,
             marker_index=markers_foot,
             target=markers_ref[p][:, markers_foot, :],
+            quadratic=True,
             phase=p,
         )
         objective_functions.add(
@@ -206,14 +209,15 @@ def prepare_ocp(
             weight=100,
             marker_index=markers_tissus,
             target=markers_ref[p][:, markers_tissus, :],
+            quadratic=True,
             phase=p,
         )
-        objective_functions.add(ObjectiveFcn.Lagrange.MINIMIZE_CONTROL, key="tau", weight=0.001, index=10, phase=p)
+        objective_functions.add(ObjectiveFcn.Lagrange.MINIMIZE_CONTROL, key="tau", weight=0.001, index=10, quadratic=True, phase=p)
         objective_functions.add(
-            ObjectiveFcn.Lagrange.MINIMIZE_CONTROL, key="tau", weight=1, index=(6, 7, 8, 9, 11), phase=p
+            ObjectiveFcn.Lagrange.MINIMIZE_CONTROL, key="tau", weight=1, index=(6, 7, 8, 9, 11), phase=p, quadratic=True,
         )
-        objective_functions.add(ObjectiveFcn.Lagrange.MINIMIZE_CONTROL, key="muscles", weight=10, phase=p)
-        objective_functions.add(ObjectiveFcn.Lagrange.MINIMIZE_CONTROL, key="tau", derivative=True, weight=0.1, phase=p)
+        objective_functions.add(ObjectiveFcn.Lagrange.MINIMIZE_CONTROL, key="muscles", weight=10, phase=p, quadratic=True,)
+        objective_functions.add(ObjectiveFcn.Lagrange.MINIMIZE_CONTROL, key="tau", derivative=True, weight=0.1, quadratic=True, phase=p)
 
     # --- track contact forces for the stance phase ---
     for p in range(nb_phases - 1):

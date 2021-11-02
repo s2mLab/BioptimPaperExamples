@@ -18,6 +18,7 @@ from bioptim import (
     PhaseTransitionFcn,
     PenaltyNode,
     BiorbdInterface,
+    Axis,
 )
 
 
@@ -257,7 +258,23 @@ def prepare_ocp(
         marker_index=26,
         phase=0,
     )
+    constraints.add(  # on the ground z=0
+        ConstraintFcn.TRACK_MARKERS,
+        node=Node.START,
+        marker_index=26,
+        axes=Axis.Z,
+        phase=0,
+    )
+
     # --- phase flatfoot ---
+    constraints.add(  # on the ground z=0
+        ConstraintFcn.TRACK_MARKERS,
+        node=Node.START,
+        marker_index=[27, 28],
+        axes=Axis.Z,
+        phase=1,
+    )
+
     constraints.add(  # positive vertical forces
         ConstraintFcn.TRACK_CONTACT_FORCES,
         min_bound=min_bound,

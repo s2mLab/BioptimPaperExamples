@@ -27,7 +27,7 @@ def get_contact_index(pn, tag):
 
 
 # --- force nul at last point ---
-def force_contact(pn: PenaltyNode) -> MX:
+def force_contact(pn: PenaltyNode, index_contact: list) -> MX:
     """
     Adds the constraint that the force at the specific contact point should be null
     at the last phase point.
@@ -47,7 +47,7 @@ def force_contact(pn: PenaltyNode) -> MX:
     states = vertcat(pn.nlp.states["q"].mx, pn.nlp.states["qdot"].mx)
     controls = vertcat(pn.nlp.controls["tau"].mx, pn.nlp.controls["muscles"].mx)
     force = pn.nlp.contact_forces_func(states, controls, pn.nlp.parameters.mx)
-    return BiorbdInterface.mx_to_cx("grf", force, pn.nlp.states["q"], pn.nlp.states["qdot"], pn.nlp.controls["tau"], pn.nlp.controls["muscles"])
+    return BiorbdInterface.mx_to_cx("grf", force, pn.nlp.states["q"], pn.nlp.states["qdot"], pn.nlp.controls["tau"], pn.nlp.controls["muscles"])[index_contact]
 
 
 # --- track grf ---
@@ -121,7 +121,6 @@ def prepare_ocp(
     q_ref: list,
     qdot_ref: list,
     M_ref: list,
-    CoP: list,
     nb_threads: int,
 ) -> OptimalControlProgram:
     """
@@ -150,8 +149,6 @@ def prepare_ocp(
         They are used as initial guess
     M_ref: list
         List of the array of ground reaction moments to track
-    CoP: list
-        List of the array of the measured center of pressure trajectory
     nb_threads:int
         The number of threads used
 
@@ -222,24 +219,25 @@ def prepare_ocp(
     for p in range(nb_phases - 1):
         objective_functions.add(
             track_sum_contact_forces,  # track contact forces
+            custom_type=ObjectiveFcn.Lagrange,
             target=grf_ref[p],
-            custom_type=ObjectiveFcn.Lagrange,
-            node=Node.ALL,
-            weight=0.1,
-            phase=p,
-        )
-
-    for p in range(1, nb_phases - 1):
-        objective_functions.add(
-            track_sum_contact_moments,
-            target=M_ref[p],
-            custom_type=ObjectiveFcn.Lagrange,
             node=Node.ALL,
             weight=0.01,
             quadratic=True,
             phase=p,
-            marker_foot=[25, 26, 27, 28, 29]
         )
+
+    # for p in range(1, nb_phases - 1):
+    #     objective_functions.add(
+    #         track_sum_contact_moments,
+    #         target=M_ref[p],
+    #         custom_type=ObjectiveFcn.Lagrange,
+    #         node=Node.ALL,
+    #         weight=0.01,
+    #         quadratic=True,
+    #         phase=p,
+    #         marker_foot=[26, 27, 28, 29]
+    #     )
 
     # Dynamics
     dynamics = DynamicsList()

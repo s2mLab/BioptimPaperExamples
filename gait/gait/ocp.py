@@ -310,8 +310,8 @@ def prepare_ocp(
 
     constraints.add(  # forces heel at zeros at the end of the phase
         force_contact,
-        node=Node.ALL,
-        index=[i for i, name in enumerate(biorbd_model[1].contactNames()) if "Heel_r" in name.to_string()],
+        node=Node.PENULTIMATE,
+        index_contact=[i for i, name in enumerate(biorbd_model[1].contactNames()) if "Heel_r" in name.to_string()],
         phase=1,
     )
 
@@ -340,12 +340,14 @@ def prepare_ocp(
         static_friction_coefficient=0.2,
         phase=2,
     )
-    constraints.add(
-        force_contact,
-        node=Node.ALL,
-        index=[i for i, name in enumerate(biorbd_model[1].contactNames())],
-        phase=2,
-    )
+    # constraints.add(  # non slipping x m5
+    #     ConstraintFcn.NON_SLIPPING,
+    #     node=Node.ALL,
+    #     normal_component_idx=4,
+    #     tangential_component_idx=3,
+    #     static_friction_coefficient=0.2,
+    #     phase=2,
+    # )
 
     # Phase Transitions
     phase_transitions = PhaseTransitionList()

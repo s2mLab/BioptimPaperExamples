@@ -1,5 +1,5 @@
 import numpy as np
-from casadi import  vertcat, MX, sum1
+from casadi import vertcat, hcat, MX, sum1
 import biorbd_casadi
 from bioptim import (
     OptimalControlProgram,
@@ -18,6 +18,7 @@ from bioptim import (
     PhaseTransitionFcn,
     PenaltyNode,
     BiorbdInterface,
+    OdeSolver,
     Axis,
 )
 
@@ -393,6 +394,7 @@ def prepare_ocp(
         constraints,
         phase_transitions=phase_transitions,
         n_threads=nb_threads,
+        # ode_solver=OdeSolver.COLLOCATION(method="radau", polynomial_degree=4),
     )
 
 

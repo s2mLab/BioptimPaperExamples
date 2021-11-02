@@ -7,6 +7,7 @@ from time import time
 import numpy as np
 import biorbd_casadi as biorbd
 from bioptim import Solver, Shooting
+import matplotlib.pyplot as plt
 
 from gait.load_experimental_data import LoadData
 from gait.ocp import prepare_ocp, get_phase_time_shooting_numbers, get_experimental_data
@@ -40,7 +41,7 @@ if __name__ == "__main__":
     # --- phase time and number of shooting ---
     phase_time, number_shooting_points = get_phase_time_shooting_numbers(data, 0.01)
     # --- get experimental data ---
-    q_ref, qdot_ref, markers_ref, grf_ref, moments_ref, cop_ref = get_experimental_data(data, number_shooting_points)
+    q_ref, qdot_ref, markers_ref, grf_ref, moments_ref, cop_ref = get_experimental_data(data, number_shooting_points, phase_time)
 
     ocp = prepare_ocp(
         biorbd_model=biorbd_model,
@@ -51,7 +52,6 @@ if __name__ == "__main__":
         q_ref=q_ref,
         qdot_ref=qdot_ref,
         M_ref=moments_ref,
-        CoP=cop_ref,
         nb_threads=8,
     )
 
@@ -59,7 +59,7 @@ if __name__ == "__main__":
     # --- Solve the program --- #
     solver = Solver.IPOPT()
     solver.set_linear_solver("ma57")
-    solver.set_convergence_tolerance(1e-3)
+    solver.set_tol(1e-3)
     solver.set_hessian_approximation("exact")
     solver.set_maximum_iterations(3000)
     solver.show_online_optim=True
@@ -73,7 +73,7 @@ if __name__ == "__main__":
     print("*********************************************")
     # print(f"Problem solved with {solver.value}")
     print(f"Solving time : {toc} s")
-    print(f"Single shooting error for translation: {ss_err_trans/1000} mm")
+    print(f"Single shooting error for translation: {ss_err_trans*1000} mm")
     print(f"Single shooting error for rotation: {ss_err_rot * 180/np.pi} degrees")
     ocp.save(sol, "gait.bo")
 
@@ -84,7 +84,7 @@ if __name__ == "__main__":
         show_local_ref_frame=False,
     )
     sol.graphs()
-    sol.print()
+
 
     # --- Save results --- #
     ocp.save(sol, "gait.bo")

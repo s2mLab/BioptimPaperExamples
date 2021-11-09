@@ -30,6 +30,12 @@ def generate_table(out):
     q_ref, qdot_ref, markers_ref, grf_ref, moments_ref, cop_ref = get_experimental_data(data, number_shooting_points, phase_time)
 
     for i, ode_solver in enumerate([OdeSolver.RK4(), OdeSolver.COLLOCATION()]):
+        biorbd_model = (
+            biorbd.Model(root_path + "/models/Gait_1leg_12dof_heel.bioMod"),
+            biorbd.Model(root_path + "/models/Gait_1leg_12dof_flatfoot.bioMod"),
+            biorbd.Model(root_path + "/models/Gait_1leg_12dof_forefoot.bioMod"),
+            biorbd.Model(root_path + "/models/Gait_1leg_12dof_0contact.bioMod"),
+        )
         ocp = prepare_ocp(
             biorbd_model=biorbd_model,
             final_time=phase_time,
@@ -44,6 +50,7 @@ def generate_table(out):
 
         solver = Solver.IPOPT()
         solver.set_linear_solver("ma57")
+        solver.set_print_level(0)
 
         # --- Solve the program --- #
         tic = time()
@@ -59,4 +66,4 @@ def generate_table(out):
         out.solver[i].n_iteration = sol.iterations
         out.solver[i].cost = sol.cost
         out.solver[i].convergence_time = toc
-        out.solver[i].compute_error_single_shooting(sol, 1)
+        out.solver[i].compute_error_single_shooting(sol)

@@ -1,7 +1,7 @@
 from time import time
 
 import biorbd_casadi as biorbd
-from bioptim import Solver
+from bioptim import Solver, OdeSolver
 
 from .gait.load_experimental_data import LoadData
 from .gait.ocp import prepare_ocp, get_phase_time_shooting_numbers, get_experimental_data
@@ -41,23 +41,21 @@ def generate_table(out):
         coloc=(False, 0, 0),
     )
 
-    # --- Solve the program --- #
-    tic = time()
     solver = Solver.IPOPT()
     solver.set_linear_solver("ma57")
-    solver.set_convergence_tolerance(1e-3)
-    solver.set_hessian_approximation("exact")
-    solver.set_maximum_iterations(3000)
-    solver.show_online_optim = True
+
+    # --- Solve the program --- #
+    tic = time()
     sol = ocp.solve(solver=solver)
     toc = time() - tic
     sol_merged = sol.merge_phases()
 
-    out.nx = sol_merged.states["all"].shape[0]
-    out.nu = sol_merged.controls["all"].shape[0]
-    out.ns = sol_merged.ns[0]
     out.solver.append(out.Solver("Ipopt"))
+    out.solver[0].nx = sol_merged.states["all"].shape[0]
+    out.solver[0].nu = sol_merged.controls["all"].shape[0]
+    out.solver[0].ns = sol_merged.ns[0]
+    out.solver[0].ode_solver = OdeSolver.RK4()
     out.solver[0].n_iteration = sol.iterations
     out.solver[0].cost = sol.cost
     out.solver[0].convergence_time = toc
-    out.solver[0].compute_error_single_shooting(sol, 1, use_final_time=True)
+    out.solver[0].compute_error_single_shooting(sol, 1)

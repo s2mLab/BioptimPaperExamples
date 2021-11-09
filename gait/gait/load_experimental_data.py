@@ -1,5 +1,6 @@
 from ezc3d import c3d
 import numpy as np
+from scipy.interpolate import interp1d
 
 
 class C3dData:
@@ -119,7 +120,7 @@ class C3dData:
         - stop : second heel strike
         """
         freq = self.c3d["parameters"]["POINT"]["RATE"]["value"][0]
-        threshold = 0.04
+        threshold = 0.03
 
         # get events for start and stop of the cycle
         rhs, rto = C3dData.get_event_rhs_rto(self.c3d)
@@ -176,7 +177,7 @@ class LoadData:
         self.q = load_txt_file(q_file, self.nb_q)
         self.qdot = load_txt_file(qdot_file, self.nb_qdot)
 
-    def dispatch_data(self, data, nb_shooting):
+    def dispatch_data(self, data, nb_shooting, phase_time):
         """
         divide and adjust data dimensions to match number of shooting point for each phase
         """
@@ -184,20 +185,12 @@ class LoadData:
         index = self.c3d_data.get_indices()
         out = []
         for i in range(len(nb_shooting)):
-            a = (index[i + 1] + 1 - index[i]) / (nb_shooting[i] + 1)
             if len(data.shape) == 3:
-                if a.is_integer():
-                    x = data[:, :, index[i] : index[i + 1] + 1]
-                    out.append(x[:, :, 0 :: int(a)])
-                else:
-                    x = data[:, :, index[i] : index[i + 1]]
-                    out.append(x[:, :, 0 :: int(a)])
-
+                x = data[:, :, index[i]: index[i + 1] + 1]
             else:
-                if a.is_integer():
-                    x = data[:, index[i] : index[i + 1] + 1]
-                    out.append(x[:, 0 :: int(a)])
-                else:
-                    x = data[:, index[i] : index[i + 1]]
-                    out.append(x[:, 0 :: int(a)])
+                x = data[:, index[i]: index[i + 1] + 1]
+            t_init = np.linspace(0, phase_time[i], (index[i + 1] - index[i]) + 1)
+            t_node = np.linspace(0, phase_time[i], nb_shooting[i] + 1)
+            f = interp1d(t_init, x, kind="cubic")
+            out.append(f(t_node))
         return out

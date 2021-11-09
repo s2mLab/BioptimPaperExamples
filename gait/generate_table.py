@@ -27,7 +27,7 @@ def generate_table(out):
     # --- phase time and number of shooting ---
     phase_time, number_shooting_points = get_phase_time_shooting_numbers(data, 0.01)
     # --- get experimental data ---
-    q_ref, qdot_ref, markers_ref, grf_ref, moments_ref, cop_ref = get_experimental_data(data, number_shooting_points)
+    q_ref, qdot_ref, markers_ref, grf_ref, moments_ref, cop_ref = get_experimental_data(data, number_shooting_points, phase_time)
 
     ocp = prepare_ocp(
         biorbd_model=biorbd_model,
@@ -37,9 +37,8 @@ def generate_table(out):
         grf_ref=grf_ref,
         q_ref=q_ref,
         qdot_ref=qdot_ref,
-        M_ref=moments_ref,
-        CoP=cop_ref,
         nb_threads=8,
+        coloc=(False, 0, 0),
     )
 
     # --- Solve the program --- #

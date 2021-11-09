@@ -51,30 +51,32 @@ if __name__ == "__main__":
         grf_ref=grf_ref,
         q_ref=q_ref,
         qdot_ref=qdot_ref,
-        M_ref=moments_ref,
         nb_threads=8,
+        coloc=(False, 0, 0), # collocation (True/False, "method", polynomial degree)/ (True, "legendre", 5)
     )
 
     tic = time()
     # --- Solve the program --- #
     solver = Solver.IPOPT()
     solver.set_linear_solver("ma57")
-    solver.set_tol(1e-3)
+    solver.set_convergence_tolerance(1e-3)
     solver.set_hessian_approximation("exact")
     solver.set_maximum_iterations(3000)
-    solver.show_online_optim=True
+    solver.show_online_optim=False
     sol = ocp.solve(solver=solver)
     toc = time() - tic
 
+    ocp.save(sol, "gait_coloc.bo")
     sol_ss = sol.integrate(shooting_type=Shooting.SINGLE_CONTINUOUS, merge_phases=False)
     ss_err_trans = np.sqrt(np.mean((sol_ss.states[-1]["q"][:3, -1] - sol.states[-1]["q"][:3, -1]) ** 2))
     ss_err_rot = np.sqrt(np.mean((sol_ss.states[-1]["q"][3:, -1] - sol.states[-1]["q"][3:, -1]) ** 2))
 
     print("*********************************************")
-    # print(f"Problem solved with {solver.value}")
     print(f"Solving time : {toc} s")
     print(f"Single shooting error for translation: {ss_err_trans*1000} mm")
     print(f"Single shooting error for rotation: {ss_err_rot * 180/np.pi} degrees")
+
+    # --- Save results --- #
     ocp.save(sol, "gait.bo")
 
     # --- Show results --- #
@@ -84,7 +86,3 @@ if __name__ == "__main__":
         show_local_ref_frame=False,
     )
     sol.graphs()
-
-
-    # --- Save results --- #
-    ocp.save(sol, "gait.bo")

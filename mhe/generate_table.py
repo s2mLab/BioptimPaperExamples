@@ -68,4 +68,4 @@ def generate_table(out):
     out.solver[0].n_iteration = "N.A."
     out.solver[0].cost = "N.A."
     out.solver[0].convergence_time = time_to_optimize
-    out.solver[0].compute_error_single_shooting(sol, 1)
+    out.solver[0].compute_error_single_shooting(sol)

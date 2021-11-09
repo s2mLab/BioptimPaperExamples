@@ -1,6 +1,6 @@
 import biorbd_casadi as biorbd
 import numpy as np
-from bioptim import Solution, InitialGuess, InterpolationType
+from bioptim import Solution, InitialGuess, InterpolationType, OdeSolver
 
 from .mhe.ocp import get_reference_data, prepare_mhe, prepare_short_ocp, generate_noise, update_mhe
 
@@ -61,9 +61,10 @@ def generate_table(out):
     sol = Solution(short_ocp, [x_init_guess, u_init_guess])
 
     out.solver.append(out.Solver("Acados"))
-    out.nx = final_time_index
-    out.nu = final_time_index - 1
-    out.ns = final_time_index
+    out.solver[0].ode_solver = OdeSolver.RK4()
+    out.solver[0].nx = final_time_index
+    out.solver[0].nu = final_time_index - 1
+    out.solver[0].ns = final_time_index
     out.solver[0].n_iteration = "N.A."
     out.solver[0].cost = "N.A."
     out.solver[0].convergence_time = time_to_optimize

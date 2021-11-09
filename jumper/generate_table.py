@@ -25,4 +25,4 @@ def generate_table(out):
         out.solver[i].n_iteration = sol.iterations
         out.solver[i].cost = sol.cost
         out.solver[i].convergence_time = toc
-        out.solver[i].compute_error_single_shooting(sol, 0.5)
+        out.solver[i].compute_error_single_shooting(sol)

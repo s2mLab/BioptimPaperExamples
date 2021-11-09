@@ -9,6 +9,9 @@ import numpy as np
 from bioptim import Shooting, OdeSolver
 
 
+divergence_threshold = 10
+
+
 class TableOCP:
     def __init__(self):
         self.cols = None
@@ -48,8 +51,9 @@ class TableOCP:
                 self.convergence_time = -1
                 self.single_shoot_error_t = -1
                 self.single_shoot_error_r = -1
+                self.single_shoot_divergence_time = None
 
-            def print(self, divergence_threashold):
+            def print(self):
                 print(f"\t\tsolver = {self.name}")
                 steps = f"internal steps = {self.ode_solver.steps}" if isinstance(self.ode_solver, OdeSolver.RK4) \
                     else f"polynomial degree = {self.ode_solver.polynomial_degree}"
@@ -62,18 +66,10 @@ class TableOCP:
                 print(f"\t\t\tconvergence_time (s) = {self.convergence_time}")
                 print(f"\t\t\tsingle_shoot_error translation (mm) = {self.single_shoot_error_t}")
                 print(f"\t\t\tsingle_shoot_error rotation (°) = {self.single_shoot_error_r}")
-                print(f"\t\t\tsingle_shoot_time before divergence of {divergence_threashold}(°) = {self.single_shoot_divergence_time}")
+                print(f"\t\t\tsingle_shoot_time before divergence of {divergence_threshold}(°) = {self.single_shoot_divergence_time}")
 
-            def compute_error_single_shooting(self, sol, duration, use_final_time=False, divergence_threashold=10):
+            def compute_error_single_shooting(self, sol):
                 sol_merged = sol.merge_phases()
-
-                if sol_merged.phase_time[-1] < duration and not use_final_time:
-                    raise ValueError(
-                        f"Single shooting integration duration must be smaller than "
-                        f"ocp duration: {sol_merged.phase_time[-1]} s. "
-                        f"You can set use_final_time=True if you want to use the final time for the "
-                        f"Single shooting integration duration"
-                    )
 
                 trans_idx = []
                 rot_idx = []
@@ -86,20 +82,13 @@ class TableOCP:
                 rot_idx = np.array(list(set(rot_idx)))
                 trans_idx = np.array(list(set(trans_idx)))
 
-                sol_int = sol.integrate(shooting_type=Shooting.SINGLE_CONTINUOUS, merge_phases=False, keep_intermediate_points=False, use_scipy_integrator=True)
-                sol_int = sol_int.merge_phases()
-                if use_final_time:
-                    sn_1s = -1
-                else:
-                    sn_1s = int(sol_int.ns[0] / sol_int.phase_time[-1] * duration)  # shooting node at {duration} second
+                sol_int = sol.integrate(shooting_type=Shooting.SINGLE_CONTINUOUS, merge_phases=True, use_scipy_integrator=True)
+                jumps = int((sol_merged.states["q"].shape[1] - 1) / (sol_int.states["q"].shape[1] - 1))
                 if len(rot_idx) > 0:
-                    error_r = sol_int.states["q"][rot_idx, :] - sol_merged.states["q"][rot_idx, :]
-                    self.single_shoot_error_r = (np.sqrt(np.mean(error_r[:, sn_1s] ** 2)) * 180 / np.pi)
-                    self.divergence_node = []
-                    self.single_shoot_divergence_time = []
+                    error_r = sol_int.states["q"][rot_idx, :] - sol_merged.states["q"][rot_idx, ::jumps]
+                    self.single_shoot_error_r = (np.sqrt(np.mean(error_r ** 2)) * 180 / np.pi)
                     for i in range(error_r.shape[1]):
-                        if np.any(np.abs(error_r[:, i]) > divergence_threashold * np.pi / 180):
-                            self.divergence_node = i
+                        if np.any(np.abs(error_r[:, i]) > divergence_threshold * np.pi / 180):
                             self.single_shoot_divergence_time = sol_int.phase_time[-1] / sol_int.ns[0] * i
                             break
                 else:
@@ -108,7 +97,7 @@ class TableOCP:
                     self.single_shoot_error_t = (
                         np.sqrt(
                             np.mean(
-                                (sol_int.states["q"][trans_idx, sn_1s] - sol_merged.states["q"][trans_idx, sn_1s]) ** 2
+                                (sol_int.states["q"][trans_idx, :] - sol_merged.states["q"][trans_idx, ::jumps]) ** 2
                             )
                         )
                         / 1000
@@ -119,18 +108,18 @@ class TableOCP:
 
 table = TableOCP()
 
-# table.add("gait")  # requires 16Gb of RAM and takes time to converge (~4h)
-# table.add("jumper")  # takes time to converge (~5 min)
+table.add("gait")
+table.add("jumper")
 table.add("mhe")
 table.add("pendulum")
 table.add("pointing")
 table.add("somersault")
 
-# gait_table(table["gait"])
-# jumper_table(table["jumper"])
+gait_table(table["gait"])  # requires 16Gb of RAM and takes time to converge (~1h)
+jumper_table(table["jumper"])
 mhe_table(table["mhe"])
 pendulum_table(table["pendulum"])
 pointing_table(table["pointing"])
 somersault_table(table["somersault"])
 
-table.print(divergence_threashold=10)
+table.print()

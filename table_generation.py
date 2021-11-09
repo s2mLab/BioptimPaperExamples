@@ -6,7 +6,7 @@ from pointing.generate_table import generate_table as pointing_table
 from somersault.generate_table import generate_table as somersault_table
 
 import numpy as np
-from bioptim import Shooting
+from bioptim import Shooting, OdeSolver
 
 
 class TableOCP:
@@ -50,7 +50,10 @@ class TableOCP:
                 self.single_shoot_error_r = -1
 
             def print(self):
-                print(f"\t\tsolver = {self.name} -- {type(self.ode_solver).__name__}")
+                print(f"\t\tsolver = {self.name}")
+                steps = f"internal steps = {self.ode_solver.steps}" if isinstance(self.ode_solver, OdeSolver.RK4) \
+                    else f"polynomial degree = {self.ode_solver.polynomial_degree}"
+                print(f"\t\t\tns = {type(self.ode_solver).__name__}, {steps}")
                 print(f"\t\t\tns = {self.ns}")
                 print(f"\t\t\tnx = {self.nx}")
                 print(f"\t\t\tnu = {self.nu}")

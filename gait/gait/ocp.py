@@ -62,7 +62,7 @@ def prepare_ocp(
     q_ref: list,
     qdot_ref: list,
     nb_threads: int,
-    coloc:list,
+    ode_solver=OdeSolver.RK4(),
 ) -> OptimalControlProgram:
     """
     Prepare the ocp
@@ -90,8 +90,6 @@ def prepare_ocp(
         They are used as initial guess
     nb_threads:int
         The number of threads used
-    coloc : list
-        cocol(True/False, "method", polynomial degree)
 
     Returns
     -------
@@ -227,14 +225,15 @@ def prepare_ocp(
     x_init = InitialGuessList()
     u_init = InitialGuessList()
 
-    if coloc[0]:
+    if ode_solver.is_direct_collocation:
+        n_degree = ode_solver.polynomial_degree
         for p in range(nb_phases):
             t_init = np.linspace(0, final_time[p], nb_shooting[p] + 1)
-            t_node = np.linspace(0, final_time[p], (nb_shooting[p])*(coloc[2] + 1) + 1)
+            t_node = np.linspace(0, final_time[p], (nb_shooting[p])*(n_degree + 1) + 1)
             fq = interp1d(t_init, q_ref[p], kind="cubic")
             fqdot = interp1d(t_init, qdot_ref[p], kind="cubic")
 
-            init_x = np.zeros((nb_q + nb_qdot, (nb_shooting[p])*(coloc[2] + 1) + 1))
+            init_x = np.zeros((nb_q + nb_qdot, (nb_shooting[p])*(n_degree + 1) + 1))
             init_x[:nb_q, :] = fq(t_node)
             init_x[nb_q : nb_q + nb_qdot, :] = fqdot(t_node)
             x_init.add(init_x, interpolation=InterpolationType.EACH_FRAME)
@@ -252,7 +251,6 @@ def prepare_ocp(
             u_init.add(init_u)
 
     # ------------- #
-    ode_solver = OdeSolver.COLLOCATION(method=coloc[1], polynomial_degree=coloc[2]) if coloc[0] else OdeSolver.RK4
     return OptimalControlProgram(
         biorbd_model,
         dynamics,

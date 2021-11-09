@@ -6,7 +6,7 @@ from time import time
 
 import numpy as np
 import biorbd_casadi as biorbd
-from bioptim import Solver, Shooting
+from bioptim import Solver, Shooting, OdeSolver
 import matplotlib.pyplot as plt
 
 from gait.load_experimental_data import LoadData
@@ -52,7 +52,7 @@ if __name__ == "__main__":
         q_ref=q_ref,
         qdot_ref=qdot_ref,
         nb_threads=8,
-        coloc=(False, 0, 0), # collocation (True/False, "method", polynomial degree)/ (True, "legendre", 5)
+        ode_solver=OdeSolver.RK4(), # collocation (True/False, "method", polynomial degree)/ (True, "legendre", 5)
     )
 
     tic = time()

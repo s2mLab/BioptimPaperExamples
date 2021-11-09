@@ -140,3 +140,10 @@ cython_debug/
 # ACADOS
 c_generated_code
 *.json
+
+# idea
+.idea/
+
+# Outputs
+*.eps
+*.mat

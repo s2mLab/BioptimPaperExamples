@@ -363,45 +363,40 @@ marker	R_FMP5
 endmarker
 // ---- Contact
 contact    Heel_r //FCC decale
-	parent    foot_marker_r
-	position    0.0254278	 -0.02	   0.00220395
-	axis    xz
+	parent    foot_r
+	position    0.00549  0 -0.00776475
+	axis    z
 endcontact
 contact    Meta_1_r //FM1
-	parent    foot_marker_r
-	position    0.19973	 -0.02	  -0.0323195
+	parent    foot_r
+	position    0.179793 0 -0.0422882
 	axis    z
 endcontact
 contact    Meta_5_r //FM5
-	parent    foot_marker_r
-	position   0.156485	 -0.02	   0.0638694
+	parent    foot_r
+	position   0.179793 0  0.0422882
 	axis    xyz
 endcontact
+
 
 // --------------------------------------------------------------------------------------------------------
 // Markers Contact
 // --------------------------------------------------------------------------------------------------------
-marker	 Heel_r //26
-	parent    foot_marker_r
-	position    0.0254278	  -0.02	   0.00220395
+marker    Heel_r //26
+	parent    foot_r
+	position    0.00549  0 -0.00776475
 	technical	1
 endmarker
-marker	Meta_1_r //27
-	parent    foot_marker_r
-	position    0.19973	 -0.02	  -0.0323195
+marker    Meta_1_r //27
+	parent    foot_r
+	position    0.179793 0 -0.0422882
 	technical	1
 endmarker
-marker	 Meta_5_r //28
-	parent    foot_marker_r
-	position    0.156485	 -0.02	   0.0638694
+marker    Meta_5_r //28
+	parent    foot_r
+	position   0.179793 0  0.0422882
 	technical	1
 endmarker
-marker	  Toe_r //29
-	parent    foot_marker_r
-	position    0.24	     -0.02    -0.0323195
-	technical	1
-endmarker
-
 // --------------------------------------------------------------------------------------------------------
 // Informations about toes_r segment
 // --------------------------------------------------------------------------------------------------------
@@ -411,9 +406,12 @@ segment toes_r
     RTinMatrix	1
 	RT 
 		1	0	0	0.17625
-		0	1	0	-0.0019937
+		0	1	0	0
 		0	0	1	0.0010766
 		0	0	0	1
+	rotations	z
+    	rangesQ   -pi/6 pi/6
+    	rangesQdot -7   7
 	mass	0.091226
 	inertia
 		9.298e-05	0	0
@@ -422,7 +420,11 @@ segment toes_r
 	com	0.030604	-0.0025919	-0.010467
 endsegment
 // ---- Markers
-// no marker
+marker	  Toe_r //29
+	parent    toes_r
+	position    0.04375	 0	-0.03053952
+	technical	1
+endmarker
 
 // --------------------------------------------------------------------------------------------------------
 // Informations about muscle groups

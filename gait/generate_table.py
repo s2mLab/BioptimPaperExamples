@@ -1,7 +1,7 @@
 from time import time
 
-import biorbd
-from bioptim import Solver
+import biorbd_casadi as biorbd
+from bioptim import Solver, OdeSolver
 
 from .gait.load_experimental_data import LoadData
 from .gait.ocp import prepare_ocp, get_phase_time_shooting_numbers, get_experimental_data
@@ -27,41 +27,43 @@ def generate_table(out):
     # --- phase time and number of shooting ---
     phase_time, number_shooting_points = get_phase_time_shooting_numbers(data, 0.01)
     # --- get experimental data ---
-    q_ref, qdot_ref, markers_ref, grf_ref, moments_ref, cop_ref = get_experimental_data(data, number_shooting_points)
+    q_ref, qdot_ref, markers_ref, grf_ref, moments_ref, cop_ref = get_experimental_data(data, number_shooting_points, phase_time)
 
-    ocp = prepare_ocp(
-        biorbd_model=biorbd_model,
-        final_time=phase_time,
-        nb_shooting=number_shooting_points,
-        markers_ref=markers_ref,
-        grf_ref=grf_ref,
-        q_ref=q_ref,
-        qdot_ref=qdot_ref,
-        M_ref=moments_ref,
-        CoP=cop_ref,
-        nb_threads=8,
-    )
+    for i, ode_solver in enumerate([OdeSolver.RK4(), OdeSolver.COLLOCATION()]):
+        biorbd_model = (
+            biorbd.Model(root_path + "/models/Gait_1leg_12dof_heel.bioMod"),
+            biorbd.Model(root_path + "/models/Gait_1leg_12dof_flatfoot.bioMod"),
+            biorbd.Model(root_path + "/models/Gait_1leg_12dof_forefoot.bioMod"),
+            biorbd.Model(root_path + "/models/Gait_1leg_12dof_0contact.bioMod"),
+        )
+        ocp = prepare_ocp(
+            biorbd_model=biorbd_model,
+            final_time=phase_time,
+            nb_shooting=number_shooting_points,
+            markers_ref=markers_ref,
+            grf_ref=grf_ref,
+            q_ref=q_ref,
+            qdot_ref=qdot_ref,
+            nb_threads=8,
+            ode_solver=ode_solver,
+        )
 
-    # --- Solve the program --- #
-    tic = time()
-    sol = ocp.solve(
-        solver=Solver.IPOPT,
-        solver_options={
-            "tol": 1e-3,
-            "max_iter": 1000,
-            "hessian_approximation": "exact",
-            "limited_memory_max_history": 50,
-            "linear_solver": "ma57",
-        },
-    )
-    toc = time() - tic
-    sol_merged = sol.merge_phases()
+        solver = Solver.IPOPT()
+        solver.set_linear_solver("ma57")
+        solver.set_print_level(0)
 
-    out.nx = sol_merged.states["all"].shape[0]
-    out.nu = sol_merged.controls["all"].shape[0]
-    out.ns = sol_merged.ns[0]
-    out.solver.append(out.Solver("Ipopt"))
-    out.solver[0].n_iteration = sol.iterations
-    out.solver[0].cost = sol.cost
-    out.solver[0].convergence_time = toc
-    out.solver[0].compute_error_single_shooting(sol, 1, use_final_time=True)
+        # --- Solve the program --- #
+        tic = time()
+        sol = ocp.solve(solver=solver)
+        toc = time() - tic
+        sol_merged = sol.merge_phases()
+
+        out.solver.append(out.Solver("Ipopt"))
+        out.solver[i].nx = sol_merged.states["all"].shape[0]
+        out.solver[i].nu = sol_merged.controls["all"].shape[0]
+        out.solver[i].ns = sol_merged.ns[0]
+        out.solver[i].ode_solver = ode_solver
+        out.solver[i].n_iteration = sol.iterations
+        out.solver[i].cost = sol.cost
+        out.solver[i].convergence_time = toc
+        out.solver[i].compute_error_single_shooting(sol)

@@ -1,8 +1,11 @@
-import biorbd
+import pickle
+
+import biorbd_casadi as biorbd
 import numpy as np
 from casadi import MX, Function
 from bioptim import (
     OptimalControlProgram,
+    MovingHorizonEstimator,
     ObjectiveList,
     ObjectiveFcn,
     DynamicsList,
@@ -10,10 +13,12 @@ from bioptim import (
     BoundsList,
     QAndQDotBounds,
     InitialGuess,
+    InterpolationType,
+    Solver,
 )
 
 
-def muscle_forces(q: MX, qdot: MX, a: MX, controls: MX, model: biorbd.Model, use_activation=True):
+def muscle_forces(q: MX, qdot: MX, a: MX, controls: MX, model: biorbd.Model):
     """
     Compute muscle force
     Parameters
@@ -28,31 +33,31 @@ def muscle_forces(q: MX, qdot: MX, a: MX, controls: MX, model: biorbd.Model, use
         Symbolic value of activations
     model: biorbd.Model
         biorbd model build with the bioMod
-    use_activation: bool
-        True if activation drive False if excitation driven
     Returns
     -------
     List of muscle forces
     """
-    muscle_states = biorbd.VecBiorbdMuscleState(model.nbMuscles())
+    muscle_states = model.stateSet()
     for k in range(model.nbMuscles()):
-        if use_activation:
-            muscle_states[k].setActivation(controls[k])
-        else:
-            muscle_states[k].setActivation(a[k])
-            muscle_states[k].setExcitation(controls[k])
+        muscle_states[k].setActivation(controls[k])
     return model.muscleForces(muscle_states, q, qdot).to_mx()
 
 
-def force_func(biorbd_model: biorbd.Model, use_activation=True):
+def get_reference_data(file_path):
+    with open(file_path, "rb") as file:
+        data = pickle.load(file)
+    states = data["data"][0]
+    controls = data["data"][1]
+    return states["q"][:, :], states["qdot"][:, :], states["muscles"][:, :], controls["muscles"][:, :]
+
+
+def muscle_force_func(biorbd_model: biorbd.Model):
     """
     Define Casadi function to use muscle_forces
     Parameters
     ----------
     biorbd_model: biorbd.Model
         biorbd model build with the bioMod
-    use_activation: bool
-        True if activation drive False if excitation driven
     """
     q_mx = MX.sym("qMX", biorbd_model.nbQ(), 1)
     dq_mx = MX.sym("dq_mx", biorbd_model.nbQ(), 1)
@@ -61,7 +66,7 @@ def force_func(biorbd_model: biorbd.Model, use_activation=True):
     return Function(
         "MuscleForce",
         [q_mx, dq_mx, a_mx, u_mx],
-        [muscle_forces(q_mx, dq_mx, a_mx, u_mx, biorbd_model, use_activation=use_activation)],
+        [muscle_forces(q_mx, dq_mx, a_mx, u_mx, biorbd_model)],
         ["qMX", "dq_mx", "a_mx", "u_mx"],
         ["Force"],
     ).expand()
@@ -85,41 +90,17 @@ def generate_noise(biorbd_model, q: np.array, q_noise_lvl: float):
     n_q = biorbd_model.nbQ()
     q_noise = np.ndarray((n_q, q.shape[1]))
     for i in range(n_q):
-        noise = np.random.normal(0, abs(q_noise_lvl * q[i, :] / 100))
+        noise = np.random.normal(0, abs(q_noise_lvl * (np.random.rand(1, q.shape[1]) * 0.01)))
         q_noise[i, :] = q[i, :] + noise
     return q_noise
 
 
-def warm_start_mhe(sol):
-    """
-    Ensures the problems continuity
-    Parameters
-    ----------
-    sol: sol
-        the solutions of the previous problem
-    Returns
-    ---------
-    Initial states and controls for next problem (x0, u0)
-    States and controls to save as solution (x_out, u_out)
-    """
-    x = sol.states["all"]
-    u = sol.controls["all"]
-
-    x0 = np.hstack((x[:, 1:], np.tile(x[:, [-1]], 1)))  # discard oldest estimate of the window, duplicates youngest
-    u0 = u[:, :-1]
-    x_out = x[:, 0]
-    u_out = u[:, 0]
-    return x0, u0, x_out, u_out
-
-
-def define_objective(
-    q: np.array, iteration: int, rt_ratio: int, ns_mhe: int, biorbd_model: biorbd.Model, use_noise=True
-):
+def define_objective(target_q: np.array, iteration: int, rt_ratio: int, ns_mhe: int, use_noise=True):
     """
     Define the objective function for the ocp
     Parameters
     ----------
-    q: np.array
+    target_q: np.array
         State to track
     iteration: int
         Current iteration
@@ -127,8 +108,6 @@ def define_objective(
         Value of the reference data ratio to send to the estimator
     ns_mhe: int
         Size of the windows
-    biorbd_model: biorbd.Model
-        biorbd model build with the bioMod
     use_noise: bool
         True if noisy reference data
     Returns
@@ -137,31 +116,29 @@ def define_objective(
     """
     objectives = ObjectiveList()
     if use_noise is not True:
-        weight = {"track_state": 1000000, "min_act": 1000, "min_dq": 10, "min_q": 10}
+        weight = {"track_state": 10000, "min_control": 100, "min_dq": 100, "min_q": 100}
     else:
-        weight = {"track_state": 1000, "min_act": 100, "min_dq": 100, "min_q": 10}
-    objectives.add(ObjectiveFcn.Lagrange.MINIMIZE_MUSCLES_CONTROL, weight=weight["min_act"])
+        weight = {"track_state": 1000, "min_control": 10, "min_dq": 10, "min_q": 10}
+
     objectives.add(
-        ObjectiveFcn.Lagrange.MINIMIZE_STATE,
-        weight=weight["min_dq"],
-        index=np.array(range(biorbd_model.nbQ(), biorbd_model.nbQ() * 2)),
+        ObjectiveFcn.Lagrange.MINIMIZE_CONTROL, key="muscles", weight=weight["min_control"], multi_thread=False
     )
+    objectives.add(ObjectiveFcn.Lagrange.MINIMIZE_STATE, key="q", weight=weight["min_q"], multi_thread=False)
+    objectives.add(ObjectiveFcn.Lagrange.MINIMIZE_STATE, key="qdot", weight=weight["min_dq"], multi_thread=False)
+    target_q = get_target(target_q, ns_mhe, rt_ratio, iteration)
     objectives.add(
-        ObjectiveFcn.Lagrange.MINIMIZE_STATE,
-        weight=weight["min_q"],
-        index=np.array(range(biorbd_model.nbQ())),
-    )
-    q = q[:, ::rt_ratio]
-    objectives.add(
-        ObjectiveFcn.Lagrange.TRACK_STATE,
-        weight=weight["track_state"],
-        target=q[:, iteration : (ns_mhe + 1 + iteration)],
-        index=range(biorbd_model.nbQ()),
+        ObjectiveFcn.Lagrange.TRACK_STATE, key="q", weight=weight["track_state"], target=target_q, multi_thread=False
     )
     return objectives
 
 
-def prepare_ocp(biorbd_model: biorbd.Model, final_time: float, n_shooting: int):
+def get_target(q_ref, ns_mhe, rt_ratio, iteration):
+    return q_ref[:, ::rt_ratio][:, iteration : (ns_mhe + 1 + iteration)]
+
+
+def prepare_mhe(
+    biorbd_model: biorbd.Model, final_time: float, n_shooting: int, x_ref: np.ndarray, rt_ratio: int, use_noise: bool
+):
     """
     Prepare to build a blank ocp witch will be update several times
     Parameters
@@ -172,51 +149,78 @@ def prepare_ocp(biorbd_model: biorbd.Model, final_time: float, n_shooting: int):
         The time at the final node
     n_shooting: int
         The number of shooting points
+    x_ref: np.ndarray
+        The reference position
+    rt_ratio
+
     Returns
     -------
     The blank OptimalControlProgram
     """
+
+    q_ref = x_ref[: biorbd_model.nbQ(), 0 : n_shooting * rt_ratio]
     # Add objective functions
-    objective_functions = ObjectiveList()
+    objective_functions = define_objective(q_ref, 0, rt_ratio, n_shooting, use_noise=use_noise)
 
     # Dynamics
     dynamics = DynamicsList()
-    dynamics.add(DynamicsFcn.MUSCLE_ACTIVATIONS_DRIVEN)
+    dynamics.add(DynamicsFcn.MUSCLE_DRIVEN)
 
     # Path constraint
     x_bounds = BoundsList()
     x_bounds.add(bounds=QAndQDotBounds(biorbd_model))
 
     # Define control path constraint
+    x_bounds = BoundsList()
+    x_bounds.add(bounds=QAndQDotBounds(biorbd_model))
+    x_bounds[0].min[: biorbd_model.nbQ(), 0] = q_ref[:, 0] - 0.1
+    x_bounds[0].max[: biorbd_model.nbQ(), 0] = q_ref[:, 0] + 0.1
+
     u_bounds = BoundsList()
     u_bounds.add([0] * biorbd_model.nbMuscles(), [1] * biorbd_model.nbMuscles())
 
-    x_init = InitialGuess([0] * biorbd_model.nbQ() * 2)
-    u_init = InitialGuess([0] * biorbd_model.nbMuscles())
+    x_init = InitialGuess(x_ref[:, : n_shooting + 1], interpolation=InterpolationType.EACH_FRAME)
+    u_init = InitialGuess([0.2] * biorbd_model.nbMuscles(), interpolation=InterpolationType.CONSTANT)
 
     # ------------- #
-
-    return OptimalControlProgram(
+    mhe = MovingHorizonEstimator(
         biorbd_model,
         dynamics,
         n_shooting,
         final_time,
-        x_init,
-        u_init,
-        x_bounds,
-        u_bounds,
-        objective_functions,
+        x_bounds=x_bounds,
+        u_bounds=u_bounds,
+        x_init=x_init,
+        u_init=u_init,
+        objective_functions=objective_functions,
         use_sx=True,
+        n_threads=8,
     )
 
+    solver = Solver.ACADOS()
+    solver.set_convergence_tolerance(1e-5)
+    solver.set_integrator_type("IRK")
+    solver.set_nlp_solver_type("SQP")
+    solver.set_sim_method_num_steps(1)
+    solver.set_print_level(0)
+    solver.set_maximum_iterations(20)
 
-def prepare_short_ocp(biorbd_model: biorbd.Model, final_time: float, n_shooting: int):
+    return mhe, solver
+
+
+def update_mhe(mhe, i, _, q_ref, ns_mhe, rt_ratio, final_time_index):
+    target = get_target(q_ref, ns_mhe, rt_ratio, i)
+    mhe.update_objectives_target(target, list_index=3)
+    return i < final_time_index
+
+
+def prepare_short_ocp(model_path: str, final_time: float, n_shooting: int):
     """
     Prepare to build a blank short ocp to use single shooting bioptim function
     Parameters
     ----------
-    biorbd_model: biorbd.Model
-        biorbd model build with the bioMod
+    model_path: str
+        path to bioMod
     final_time: float
         The time at the final node
     n_shooting: int
@@ -225,12 +229,14 @@ def prepare_short_ocp(biorbd_model: biorbd.Model, final_time: float, n_shooting:
     -------
     The blank OptimalControlProgram
     """
+    biorbd_model = biorbd.Model(model_path)
+
     # Add objective functions
     objective_functions = ObjectiveList()
 
     # Dynamics
     dynamics = DynamicsList()
-    dynamics.add(DynamicsFcn.MUSCLE_ACTIVATIONS_DRIVEN)
+    dynamics.add(DynamicsFcn.MUSCLE_DRIVEN, expand=False)
 
     # Path constraint
     x_bounds = BoundsList()
@@ -240,7 +246,8 @@ def prepare_short_ocp(biorbd_model: biorbd.Model, final_time: float, n_shooting:
     u_bounds = BoundsList()
     u_bounds.add([0] * biorbd_model.nbMuscles(), [1] * biorbd_model.nbMuscles())
 
-    x_init = InitialGuess([0] * biorbd_model.nbQ() * 2)
+    x_init = [0] * biorbd_model.nbQ() * 2
+    x_init = InitialGuess(x_init)
     u_init = InitialGuess([0] * biorbd_model.nbMuscles())
 
     # ------------- #

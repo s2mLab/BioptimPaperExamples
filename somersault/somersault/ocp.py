@@ -21,7 +21,7 @@ from bioptim import (
 )
 
 
-def prepare_ocp(biorbd_model_path: str, final_time: float, n_shooting: int, is_collocation: bool) -> OptimalControlProgram:
+def prepare_ocp(biorbd_model_path: str, final_time: float, n_shooting: int, ode_solver=OdeSolver.RK4()) -> OptimalControlProgram:
     """
     Prepare the Euler version of the ocp
     Parameters
@@ -32,17 +32,12 @@ def prepare_ocp(biorbd_model_path: str, final_time: float, n_shooting: int, is_c
         The initial guess for the time at the final node
     n_shooting: int
         The number of shooting points
+    ode_solver: OdeSolver
+        The ode solver
     Returns
     -------
     The OptimalControlProgram ready to be solved
     """
-
-    # --- Solver choice --- #
-    if is_collocation:
-        polynomial_degree = 5
-        ode_solver = OdeSolver.COLLOCATION(polynomial_degree=polynomial_degree)
-    else:
-        ode_solver = OdeSolver.RK4()
 
     # --- Options --- #
     np.random.seed(0)
@@ -62,8 +57,8 @@ def prepare_ocp(biorbd_model_path: str, final_time: float, n_shooting: int, is_c
     dynamics.add(DynamicsFcn.TORQUE_DRIVEN, expand=False)
 
     # Initial guesses
-    if is_collocation:
-        number_of_guess_nodes = n_shooting*(polynomial_degree+1) + 1
+    if isinstance(ode_solver, OdeSolver.COLLOCATION):
+        number_of_guess_nodes = n_shooting*(ode_solver.polynomial_degree+1) + 1
     else:
         number_of_guess_nodes = n_shooting + 1
 
@@ -178,7 +173,7 @@ def prepare_ocp(biorbd_model_path: str, final_time: float, n_shooting: int, is_c
     )
 
 
-def prepare_ocp_quaternion(biorbd_model_path: str, final_time: float, n_shooting: int, is_collocation: bool):
+def prepare_ocp_quaternion(biorbd_model_path: str, final_time: float, n_shooting: int, ode_solver=OdeSolver.RK4()):
     """
     Prepare the quaternion version of the ocp
     Parameters
@@ -189,13 +184,12 @@ def prepare_ocp_quaternion(biorbd_model_path: str, final_time: float, n_shooting
         The initial guess for the time at the final node
     n_shooting: int
         The number of shooting points
+    ode_solver: OdeSolver
+        The ode solver
     Returns
     -------
     The OptimalControlProgram ready to be solved
     """
-
-    # --- Solver choice --- #
-    ode_solver = OdeSolver.RK4()
 
     # --- Options --- #
     np.random.seed(0)

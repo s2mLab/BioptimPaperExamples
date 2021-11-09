@@ -25,20 +25,27 @@ from .viz import add_custom_plots
 
 
 class JumperOcp:
-    n_q, n_qdot, n_tau = -1, -1, -1
-    mapping_list = BiMappingList()
+    def __init__(
+        self,
+        jumper: Jumper,
+        n_phases,
+        n_thread=8,
+        control_type=ControlType.CONSTANT,
+        ode_solver=OdeSolver.COLLOCATION(),
+    ):
+        self.n_q, self.n_qdot, self.n_tau = -1, -1, -1
+        self.mapping_list = BiMappingList()
 
-    dynamics = DynamicsList()
-    constraints = ConstraintList()
-    objective_functions = ObjectiveList()
-    x_bounds = BoundsList()
-    u_bounds = BoundsList()
-    phase_transitions = PhaseTransitionList()
-    initial_states = []
-    x_init = InitialGuessList()
-    u_init = InitialGuessList()
+        self.dynamics = DynamicsList()
+        self.constraints = ConstraintList()
+        self.objective_functions = ObjectiveList()
+        self.x_bounds = BoundsList()
+        self.u_bounds = BoundsList()
+        self.phase_transitions = PhaseTransitionList()
+        self.initial_states = []
+        self.x_init = InitialGuessList()
+        self.u_init = InitialGuessList()
 
-    def __init__(self, jumper: Jumper, n_phases, n_thread=8, control_type=ControlType.CONSTANT):
         if n_phases < 1 or n_phases > 5:
             raise ValueError("n_phases must be comprised between 1 and 5")
         self.jumper = jumper
@@ -74,7 +81,7 @@ class JumperOcp:
             phase_transitions=self.phase_transitions,
             n_threads=n_thread,
             control_type=self.control_type,
-            ode_solver=OdeSolver.COLLOCATION(),
+            ode_solver=ode_solver,
         )
 
     def _set_initial_states(self):

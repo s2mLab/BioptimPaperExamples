@@ -16,7 +16,7 @@ def generate_table(out):
         ocp = prepare_ocp(biorbd_model_path=model_path, ode_solver=ode_solver)
         solver = Solver.IPOPT()
         solver.set_linear_solver("ma57")
-        # solver.set_print_level(0)
+        solver.set_print_level(0)
 
         # --- Solve the program --- #
         tic = time()

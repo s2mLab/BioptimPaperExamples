@@ -41,7 +41,7 @@ def custom_configure(ocp, nlp):
     ConfigureProblem.configure_dynamics_function(ocp, nlp, custom_dynamic)
 
 
-def prepare_ocp(biorbd_model_path: str, use_sx: bool = True, ode_solver=OdeSolver.RK4()) -> OptimalControlProgram:
+def prepare_ocp(biorbd_model_path: str, use_sx: bool = False, ode_solver=OdeSolver.RK4()) -> OptimalControlProgram:
     """
     Prepare the ocp
     Parameters
@@ -63,7 +63,7 @@ def prepare_ocp(biorbd_model_path: str, use_sx: bool = True, ode_solver=OdeSolve
     )
 
     # ConfigureProblem parameters
-    number_shooting_points = 50, 50
+    number_shooting_points = 500, 500
     final_time = 5, 5
     tau_min, tau_max, tau_init = -500, 500, 0
 

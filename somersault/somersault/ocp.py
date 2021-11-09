@@ -39,7 +39,8 @@ def prepare_ocp(biorbd_model_path: str, final_time: float, n_shooting: int, is_c
 
     # --- Solver choice --- #
     if is_collocation:
-        ode_solver = OdeSolver.COLLOCATION()
+        polynomial_degree = 5
+        ode_solver = OdeSolver.COLLOCATION(polynomial_degree=polynomial_degree)
     else:
         ode_solver = OdeSolver.RK4()
 
@@ -61,17 +62,22 @@ def prepare_ocp(biorbd_model_path: str, final_time: float, n_shooting: int, is_c
     dynamics.add(DynamicsFcn.TORQUE_DRIVEN, expand=False)
 
     # Initial guesses
-    vz0 = 6.0
-    x = np.vstack((np.zeros((n_q, n_shooting + 1)), np.ones((n_qdot, n_shooting + 1))))
-    x[2, :] = (
-        vz0 * np.linspace(0, final_time, n_shooting + 1) + -9.81 / 2 * np.linspace(0, final_time, n_shooting + 1) ** 2
-    )
-    x[3, :] = np.linspace(0, 2 * np.pi, n_shooting + 1)
-    x[5, :] = np.linspace(0, 2 * np.pi, n_shooting + 1)
-    x[6, :] = np.random.random((1, n_shooting + 1)) * np.pi - np.pi
-    x[7, :] = np.random.random((1, n_shooting + 1)) * np.pi
+    if is_collocation:
+        number_of_guess_nodes = n_shooting*(polynomial_degree+1) + 1
+    else:
+        number_of_guess_nodes = n_shooting + 1
 
-    x[n_q + 2, :] = vz0 - 9.81 * np.linspace(0, final_time, n_shooting + 1)
+    vz0 = 6.0
+    x = np.vstack((np.zeros((n_q, number_of_guess_nodes)), np.ones((n_qdot, number_of_guess_nodes))))
+    x[2, :] = (
+        vz0 * np.linspace(0, final_time, number_of_guess_nodes) + -9.81 / 2 * np.linspace(0, final_time, number_of_guess_nodes) ** 2
+    )
+    x[3, :] = np.linspace(0, 2 * np.pi, number_of_guess_nodes)
+    x[5, :] = np.linspace(0, 2 * np.pi, number_of_guess_nodes)
+    x[6, :] = np.random.random((1, number_of_guess_nodes)) * np.pi - np.pi
+    x[7, :] = np.random.random((1, number_of_guess_nodes)) * np.pi
+
+    x[n_q + 2, :] = vz0 - 9.81 * np.linspace(0, final_time, number_of_guess_nodes)
     x[n_q + 3, :] = 2 * np.pi / final_time
     x[n_q + 5, :] = 2 * np.pi / final_time
 
@@ -189,10 +195,7 @@ def prepare_ocp_quaternion(biorbd_model_path: str, final_time: float, n_shooting
     """
 
     # --- Solver choice --- #
-    if is_collocation:
-        ode_solver = OdeSolver.COLLOCATION()
-    else:
-        ode_solver = OdeSolver.RK4()
+    ode_solver = OdeSolver.RK4()
 
     # --- Options --- #
     np.random.seed(0)

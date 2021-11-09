@@ -40,11 +40,12 @@ axs_1 = plt.subplot(3, 1, 2)
 fig.text(0.06, 0.5, "VELOCITIES", va="center", ha="center", rotation="vertical", fontsize=18)
 axs_1.plot(time_vector[:-1], qdot[0, :-1], "-", color="#1f77b4", label="Mass Velocity")
 (l1,) = axs_1.plot(
-    np.array([5, 5]), np.array([-0.55, 0.5]), "-", linewidth=0.8, color="k", alpha=0.6, linestyle=(0, (5, 5))
+    np.array([5, 5]), np.array([-1.5, 1.5]), "-", linewidth=0.8, color="k", alpha=0.6, linestyle=(0, (5, 5))
 )
 axs_1.tick_params(axis="x", labelcolor="w")
 axs_1.set_ylabel("Mass velocity\n[m/s]", color="#1f77b4").set_fontsize(16)
 axs_1.tick_params(axis="y", labelcolor="#1f77b4")
+axs_1.set_ylim(-1.6, 1.5)
 
 ax1 = axs_1.twinx()
 (lines1,) = ax1.plot(0, 0, "-", color="#1f77b4", label="Mass Velocity")

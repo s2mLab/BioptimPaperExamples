@@ -21,7 +21,7 @@ from bioptim import (
 )
 
 
-def prepare_ocp(biorbd_model_path: str, final_time: float, n_shooting: int) -> OptimalControlProgram:
+def prepare_ocp(biorbd_model_path: str, final_time: float, n_shooting: int, is_collocation: bool) -> OptimalControlProgram:
     """
     Prepare the Euler version of the ocp
     Parameters
@@ -37,6 +37,13 @@ def prepare_ocp(biorbd_model_path: str, final_time: float, n_shooting: int) -> O
     The OptimalControlProgram ready to be solved
     """
 
+    # --- Solver choice --- #
+    if is_collocation:
+        polynomial_degree = 5
+        ode_solver = OdeSolver.COLLOCATION(polynomial_degree=polynomial_degree)
+    else:
+        ode_solver = OdeSolver.RK4()
+
     # --- Options --- #
     np.random.seed(0)
     biorbd_model = biorbd.Model(biorbd_model_path)
@@ -47,7 +54,7 @@ def prepare_ocp(biorbd_model_path: str, final_time: float, n_shooting: int) -> O
 
     # Add objective functions
     objective_functions = ObjectiveList()
-    objective_functions.add(ObjectiveFcn.Lagrange.MINIMIZE_STATE, key="qdot", node=Node.ALL, index=5, weight=-1)
+    objective_functions.add(ObjectiveFcn.Lagrange.MINIMIZE_STATE, key="qdot", node=Node.ALL, index=5, weight=-1, quadratic=False)
     objective_functions.add(ObjectiveFcn.Lagrange.MINIMIZE_CONTROL, key="tau", weight=1e-6)
 
     # Dynamics
@@ -55,17 +62,22 @@ def prepare_ocp(biorbd_model_path: str, final_time: float, n_shooting: int) -> O
     dynamics.add(DynamicsFcn.TORQUE_DRIVEN, expand=False)
 
     # Initial guesses
-    vz0 = 6.0
-    x = np.vstack((np.zeros((n_q, n_shooting + 1)), np.ones((n_qdot, n_shooting + 1))))
-    x[2, :] = (
-        vz0 * np.linspace(0, final_time, n_shooting + 1) + -9.81 / 2 * np.linspace(0, final_time, n_shooting + 1) ** 2
-    )
-    x[3, :] = np.linspace(0, 2 * np.pi, n_shooting + 1)
-    x[5, :] = np.linspace(0, 2 * np.pi, n_shooting + 1)
-    x[6, :] = np.random.random((1, n_shooting + 1)) * np.pi - np.pi
-    x[7, :] = np.random.random((1, n_shooting + 1)) * np.pi
+    if is_collocation:
+        number_of_guess_nodes = n_shooting*(polynomial_degree+1) + 1
+    else:
+        number_of_guess_nodes = n_shooting + 1
 
-    x[n_q + 2, :] = vz0 - 9.81 * np.linspace(0, final_time, n_shooting + 1)
+    vz0 = 6.0
+    x = np.vstack((np.zeros((n_q, number_of_guess_nodes)), np.ones((n_qdot, number_of_guess_nodes))))
+    x[2, :] = (
+        vz0 * np.linspace(0, final_time, number_of_guess_nodes) + -9.81 / 2 * np.linspace(0, final_time, number_of_guess_nodes) ** 2
+    )
+    x[3, :] = np.linspace(0, 2 * np.pi, number_of_guess_nodes)
+    x[5, :] = np.linspace(0, 2 * np.pi, number_of_guess_nodes)
+    x[6, :] = np.random.random((1, number_of_guess_nodes)) * np.pi - np.pi
+    x[7, :] = np.random.random((1, number_of_guess_nodes)) * np.pi
+
+    x[n_q + 2, :] = vz0 - 9.81 * np.linspace(0, final_time, number_of_guess_nodes)
     x[n_q + 3, :] = 2 * np.pi / final_time
     x[n_q + 5, :] = 2 * np.pi / final_time
 
@@ -162,11 +174,11 @@ def prepare_ocp(biorbd_model_path: str, final_time: float, n_shooting: int) -> O
         constraints,
         n_threads=8,
         variable_mappings=mapping,
-        ode_solver=OdeSolver.RK4(),
+        ode_solver=ode_solver,
     )
 
 
-def prepare_ocp_quaternion(biorbd_model_path, final_time, n_shooting):
+def prepare_ocp_quaternion(biorbd_model_path: str, final_time: float, n_shooting: int, is_collocation: bool):
     """
     Prepare the quaternion version of the ocp
     Parameters
@@ -182,6 +194,9 @@ def prepare_ocp_quaternion(biorbd_model_path, final_time, n_shooting):
     The OptimalControlProgram ready to be solved
     """
 
+    # --- Solver choice --- #
+    ode_solver = OdeSolver.RK4()
+
     # --- Options --- #
     np.random.seed(0)
     biorbd_model = biorbd.Model(biorbd_model_path)
@@ -192,7 +207,7 @@ def prepare_ocp_quaternion(biorbd_model_path, final_time, n_shooting):
 
     # Add objective functions
     objective_functions = ObjectiveList()
-    objective_functions.add(max_twist_quaternion, custom_type=ObjectiveFcn.Lagrange, weight=-1, node=Node.ALL)
+    objective_functions.add(max_twist_quaternion, custom_type=ObjectiveFcn.Lagrange, weight=-1, node=Node.ALL, quadratic=False)
     objective_functions.add(ObjectiveFcn.Lagrange.MINIMIZE_CONTROL, key="tau", weight=1e-6)
 
     # Dynamics
@@ -311,13 +326,13 @@ def prepare_ocp_quaternion(biorbd_model_path, final_time, n_shooting):
         constraints,
         n_threads=8,
         variable_mappings=mapping,
-        ode_solver=OdeSolver.RK4(),
+        ode_solver=ode_solver,
     )
 
 
 def max_twist_quaternion(pn: PenaltyNode) -> cas.MX:
     val = states_to_euler_rate(pn.nlp.states["q"].mx, pn.nlp.states["qdot"].mx)
-    return BiorbdInterface.mx_to_cx("final_position", val, pn.nlp.states["q"], pn.nlp.states["qdot"])
+    return BiorbdInterface.mx_to_cx("max_twist_quaternion", val, pn.nlp.states["q"], pn.nlp.states["qdot"])
 
 
 def final_position_quaternion(pn: PenaltyNode) -> cas.MX:

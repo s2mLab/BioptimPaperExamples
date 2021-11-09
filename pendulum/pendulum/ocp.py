@@ -13,6 +13,7 @@ from bioptim import (
     ConfigureProblem,
     DynamicsFunctions,
     Node,
+    OdeSolver,
 )
 
 
@@ -40,7 +41,7 @@ def custom_configure(ocp, nlp):
     ConfigureProblem.configure_dynamics_function(ocp, nlp, custom_dynamic)
 
 
-def prepare_ocp(biorbd_model_path: str, use_sx: bool = False) -> OptimalControlProgram:
+def prepare_ocp(biorbd_model_path: str, use_sx: bool = True, ode_solver=OdeSolver.RK4()) -> OptimalControlProgram:
     """
     Prepare the ocp
     Parameters
@@ -49,6 +50,8 @@ def prepare_ocp(biorbd_model_path: str, use_sx: bool = False) -> OptimalControlP
         The path to the bioMod
     use_sx: bool
         If the project should be build in mx [False] or sx [True]
+    ode_solver: OdeSolver
+        The type of integrator
     Returns
     -------
     The OptimalControlProgram ready to be solved
@@ -60,14 +63,8 @@ def prepare_ocp(biorbd_model_path: str, use_sx: bool = False) -> OptimalControlP
     )
 
     # ConfigureProblem parameters
-    number_shooting_points = (
-        50,
-        50,
-    )
-    final_time = (
-        5,
-        5,
-    )
+    number_shooting_points = 50, 50
+    final_time = 5, 5
     tau_min, tau_max, tau_init = -500, 500, 0
 
     # Add objective functions
@@ -129,6 +126,7 @@ def prepare_ocp(biorbd_model_path: str, use_sx: bool = False) -> OptimalControlP
         x_bounds,
         u_bounds,
         objective_functions,
+        ode_solver=ode_solver,
         n_threads=8,
         use_sx=use_sx,
     )

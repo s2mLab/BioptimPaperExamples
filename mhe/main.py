@@ -8,7 +8,6 @@ from math import ceil
 
 import biorbd_casadi as biorbd
 import numpy as np
-import scipy.io as sio
 import bioviz
 
 from mhe.ocp import muscle_force_func, generate_noise, prepare_mhe, get_reference_data, update_mhe

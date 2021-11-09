@@ -8,7 +8,7 @@ mesh points.
 
 import biorbd_casadi as biorbd
 import numpy as np
-from bioptim import Solver, Shooting
+from bioptim import Solver, Shooting, OdeSolver
 from pointing.ocp import prepare_ocp
 
 
@@ -61,7 +61,7 @@ if __name__ == "__main__":
     """
     Prepare and solve and animate a reaching task ocp
     """
-    use_ipopt = False
+    use_ipopt = True
     use_excitations = True
     use_collocation = False
     if use_excitations:
@@ -70,6 +70,7 @@ if __name__ == "__main__":
         weights = np.array([100, 1, 1, 100000, 1]) if not use_ipopt else np.array([10, 1, 1, 100000, 1])
     model_path = "/".join(__file__.split("/")[:-1]) + "/models/arm26.bioMod"
     biorbd_model = biorbd.Model(model_path)
+    ode_solver = OdeSolver.COLLOCATION() if use_collocation else OdeSolver.RK4()
     ocp = prepare_ocp(
         biorbd_model=biorbd_model,
         final_time=2,
@@ -77,7 +78,7 @@ if __name__ == "__main__":
         use_sx=not use_ipopt,
         weights=weights,
         use_excitations=use_excitations,
-        use_collocation=use_collocation,
+        ode_solver=ode_solver,
     )
 
     # --- Solve the program --- #

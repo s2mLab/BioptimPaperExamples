@@ -24,7 +24,7 @@ def prepare_ocp(
     use_sx: bool,
     weights: np.ndarray,
     use_excitations=False,
-    use_collocation=False,
+    ode_solver=OdeSolver.RK4
 ) -> OptimalControlProgram:
     """
     Prepare the ocp
@@ -48,9 +48,8 @@ def prepare_ocp(
     The OptimalControlProgram ready to be solved
     """
 
-    if not use_sx and use_collocation:
+    if not use_sx and ode_solver == OdeSolver.COLLOCATION():
         raise RuntimeError("Acados solver cannot be used with colocations.")
-    ode_solver = OdeSolver.COLLOCATION() if use_collocation else OdeSolver.RK4()
 
     # Add objective functions
     objective_functions = ObjectiveList()

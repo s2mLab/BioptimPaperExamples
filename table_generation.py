@@ -29,22 +29,20 @@ class TableOCP:
     class OCP:
         def __init__(self, name):
             self.name = name
-            self.nx = -1
-            self.nu = -1
-            self.ns = -1
             self.solver = []
 
         def print(self):
             print(f"task = {self.name}")
-            print(f"\tns = {self.ns}")
-            print(f"\tnx = {self.nx}")
-            print(f"\tnu = {self.nu}")
             for solver in self.solver:
                 solver.print()
 
         class Solver:
             def __init__(self, name):
+                self.nx = -1
+                self.nu = -1
+                self.ns = -1
                 self.name = name
+                self.ode_solver = None
                 self.n_iteration = -1
                 self.cost = 0
                 self.convergence_time = -1
@@ -52,7 +50,10 @@ class TableOCP:
                 self.single_shoot_error_r = -1
 
             def print(self):
-                print(f"\t\tsolver = {self.name}")
+                print(f"\t\tsolver = {self.name} -- {type(self.ode_solver).__name__}")
+                print(f"\t\t\tns = {self.ns}")
+                print(f"\t\t\tnx = {self.nx}")
+                print(f"\t\t\tnu = {self.nu}")
                 print(f"\t\t\titerations = {self.n_iteration}")
                 print(f"\t\t\tcost = {self.cost}")
                 print(f"\t\t\tconvergence_time (s) = {self.convergence_time}")

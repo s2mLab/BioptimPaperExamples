@@ -7,7 +7,6 @@ from time import time
 import numpy as np
 import biorbd_casadi as biorbd
 from bioptim import Solver, Shooting, OdeSolver
-import matplotlib.pyplot as plt
 
 from gait.load_experimental_data import LoadData
 from gait.ocp import prepare_ocp, get_phase_time_shooting_numbers, get_experimental_data
@@ -24,14 +23,6 @@ if __name__ == "__main__":
         biorbd.Model(root_path + "models/Gait_1leg_12dof_0contact.bioMod"),
     )
 
-    # Problem parameters
-    nb_q = biorbd_model[0].nbQ()
-    nb_qdot = biorbd_model[0].nbQdot()
-    nb_tau = biorbd_model[0].nbGeneralizedTorque()
-    nb_phases = len(biorbd_model)
-    nb_markers = biorbd_model[0].nbMarkers()
-
-    # Generate data from file
     # --- files path ---
     c3d_file = root_path + "data/normal01_out.c3d"
     q_kalman_filter_file = root_path + "data/normal01_q_KalmanFilter.txt"

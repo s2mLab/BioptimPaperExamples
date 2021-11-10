@@ -41,7 +41,7 @@ if __name__ == "__main__":
     # --- phase time and number of shooting ---
     phase_time, number_shooting_points = get_phase_time_shooting_numbers(data, 0.01)
     # --- get experimental data ---
-    q_ref, qdot_ref, markers_ref, grf_ref, moments_ref, cop_ref = get_experimental_data(data, number_shooting_points, phase_time)
+    q_ref, qdot_ref, markers_ref, grf_ref, moments_ref, cop_ref, emg_ref = get_experimental_data(data, number_shooting_points, phase_time)
 
     ocp = prepare_ocp(
         biorbd_model=biorbd_model,
@@ -51,6 +51,7 @@ if __name__ == "__main__":
         grf_ref=grf_ref,
         q_ref=q_ref,
         qdot_ref=qdot_ref,
+        activation_ref=emg_ref,
         nb_threads=8,
         ode_solver=OdeSolver.RK4(),
     )

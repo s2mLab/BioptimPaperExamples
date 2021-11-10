@@ -61,6 +61,7 @@ def prepare_ocp(
     grf_ref: list,
     q_ref: list,
     qdot_ref: list,
+    activation_ref : list,
     nb_threads: int,
     ode_solver=OdeSolver.RK4(),
 ) -> OptimalControlProgram:
@@ -232,14 +233,16 @@ def prepare_ocp(
             t_node = np.linspace(0, final_time[p], (nb_shooting[p])*(n_degree + 1) + 1)
             fq = interp1d(t_init, q_ref[p], kind="cubic")
             fqdot = interp1d(t_init, qdot_ref[p], kind="cubic")
+            factivation = interp1d(t_init, activation_ref[p], kind="cubic")
 
             init_x = np.zeros((nb_q + nb_qdot, (nb_shooting[p])*(n_degree + 1) + 1))
             init_x[:nb_q, :] = fq(t_node)
             init_x[nb_q : nb_q + nb_qdot, :] = fqdot(t_node)
             x_init.add(init_x, interpolation=InterpolationType.EACH_FRAME)
 
-            init_u = [torque_init] * nb_tau + [activation_init] * nb_mus
-            u_init.add(init_u)
+            init_u = np.zeros((nb_tau + nb_mus, (nb_shooting[p]) * (n_degree + 1)))
+            init_u[nb_tau:, :] = factivation(t_node)[:, :-1]
+            x_init.add(init_u, interpolation=InterpolationType.EACH_FRAME)
     else:
         for p in range(nb_phases):
             init_x = np.zeros((nb_q + nb_qdot, nb_shooting[p] + 1))
@@ -247,8 +250,9 @@ def prepare_ocp(
             init_x[nb_q : nb_q + nb_qdot, :] = qdot_ref[p]
             x_init.add(init_x, interpolation=InterpolationType.EACH_FRAME)
 
-            init_u = [torque_init] * nb_tau + [activation_init] * nb_mus
-            u_init.add(init_u)
+            init_u = np.zeros((nb_tau + nb_mus, nb_shooting[p]))
+            init_u[nb_tau:, :] = activation_ref[p][:, :-1]
+            u_init.add(init_u, interpolation=InterpolationType.EACH_FRAME)
 
     # ------------- #
     return OptimalControlProgram(
@@ -283,4 +287,5 @@ def get_experimental_data(data, number_shooting_points, phase_time):
     grf_ref = data.dispatch_data(data=data.c3d_data.forces, nb_shooting=number_shooting_points, phase_time=phase_time)
     moments_ref = data.dispatch_data(data=data.c3d_data.moments, nb_shooting=number_shooting_points, phase_time=phase_time)
     cop_ref = data.dispatch_data(data=data.c3d_data.cop, nb_shooting=number_shooting_points, phase_time=phase_time)
-    return q_ref, qdot_ref, markers_ref, grf_ref, moments_ref, cop_ref
+    emg_ref = data.dispatch_data(data=data.c3d_data.emg, nb_shooting=number_shooting_points, phase_time=phase_time)
+    return q_ref, qdot_ref, markers_ref, grf_ref, moments_ref, cop_ref, emg_ref

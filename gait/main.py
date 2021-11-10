@@ -43,7 +43,7 @@ if __name__ == "__main__":
         q_ref=q_ref,
         qdot_ref=qdot_ref,
         nb_threads=8,
-        ode_solver=OdeSolver.RK4(), # collocation (True/False, "method", polynomial degree)/ (True, "legendre", 5)
+        ode_solver=OdeSolver.RK4(),
     )
 
     tic = time()
@@ -53,11 +53,10 @@ if __name__ == "__main__":
     solver.set_convergence_tolerance(1e-3)
     solver.set_hessian_approximation("exact")
     solver.set_maximum_iterations(3000)
-    solver.show_online_optim=False
+    solver.show_online_optim = False
     sol = ocp.solve(solver=solver)
     toc = time() - tic
 
-    ocp.save(sol, "gait_coloc.bo")
     sol_ss = sol.integrate(shooting_type=Shooting.SINGLE_CONTINUOUS, merge_phases=False)
     ss_err_trans = np.sqrt(np.mean((sol_ss.states[-1]["q"][:3, -1] - sol.states[-1]["q"][:3, -1]) ** 2))
     ss_err_rot = np.sqrt(np.mean((sol_ss.states[-1]["q"][3:, -1] - sol.states[-1]["q"][3:, -1]) ** 2))

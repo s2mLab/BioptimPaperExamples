@@ -50,6 +50,9 @@ def generate_table(out):
 
         solver = Solver.IPOPT()
         solver.set_linear_solver("ma57")
+        solver.set_convergence_tolerance(1e-3)
+        solver.set_hessian_approximation("exact")
+        solver.set_maximum_iterations(3000)
         solver.set_print_level(0)
 
         # --- Solve the program --- #

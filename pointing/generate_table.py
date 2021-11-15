@@ -39,7 +39,7 @@ def generate_table(out):
                     solver.set_hessian_approximation("exact")
                     solver.set_print_level(0)
 
-                elif not use_ipopt:
+                else:
                     solver = Solver.ACADOS()
                     solver.set_sim_method_num_steps(5)
                     solver.set_convergence_tolerance(1e-8)
@@ -47,7 +47,6 @@ def generate_table(out):
                     solver.set_integrator_type("IRK")
                     solver.set_hessian_approx("GAUSS_NEWTON")
                     solver.set_print_level(0)
-
 
             # --- Solve the program --- #
             tic = time()

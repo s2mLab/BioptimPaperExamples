@@ -79,7 +79,7 @@ if __name__ == "__main__":
     ocp = prepare_ocp(
         biorbd_model=biorbd_model,
         final_time=1,
-        n_shooting=nshooting,
+        n_shooting=n_shooting,
         use_sx=not use_ipopt,
         weights=weights,
         use_excitations=use_excitations,

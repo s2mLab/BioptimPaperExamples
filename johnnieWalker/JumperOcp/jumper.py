@@ -13,6 +13,7 @@ class Jumper:
     n_shoot = 300
 
     tau_constant_bound = 500
+    tau_min = 15
     initial_states = []
     body_at_first_node = [0, 0, 0, 0.7, -0.9, 0.50]
     initial_velocity = [0, 0, 0, 0, 0, 0]
@@ -21,25 +22,33 @@ class Jumper:
     floor_z = 0.10
 
     def __init__(self, path_to_models):
+        self.path = path_to_models
         self.model = biorbd.Model(path_to_models + "/" + self.model_files)
 
     def find_initial_root_pose(self):
+        model = biorbd.Model(self.path + "/" + self.model_files)
         # This method finds a root pose such that the body of a given pose has its CoM centered to the feet
-        n_root = self.model.nbRoot()
+        n_root = model.nbRoot()
         body_pose_no_root = self.body_at_first_node[n_root:]
 
         bound_min = []
         bound_max = []
-        for i in range(self.model.nbSegment()):
-            seg = self.model.segment(i)
+        for i in range(model.nbSegment()):
+            seg = model.segment(i)
             for r in seg.QRanges():
                 bound_min.append(r.min())
                 bound_max.append(r.max())
+        bound_max[-1] = 0.6
         bounds = (bound_min, bound_max)
 
-        q_sym = MX.sym("Q", self.model.nbQ(), 1)
-        com_func = biorbd.to_casadi_func("com", self.model.CoM, q_sym)
-        marker_func = biorbd.to_casadi_func("markers", self.model.markers, q_sym, True)
+        q_sym = MX.sym("Q", model.nbQ(), 1)
+        qdot_sym = MX.sym("Qdot", model.nbQ(), 1)
+        qddot_sym = MX.sym("Qddot", model.nbQ(), 1)
+        tau_sym = MX.sym("Tau", model.nbQ(), 1)
+        com_func = biorbd.to_casadi_func("com", model.CoM, q_sym)
+        fd_func = biorbd.to_casadi_func("fd", model.ForwardDynamics, q_sym, qdot_sym, tau_sym)
+        marker_func = biorbd.to_casadi_func("markers", model.markers, q_sym, True)
+        marker_accel_func = biorbd.to_casadi_func("marker_accel", model.markerAcceleration, q_sym, qdot_sym, qddot_sym, True)
 
         def objective_function(q, *args, **kwargs):
             # Center of mass
@@ -51,11 +60,16 @@ class Jumper:
             out = np.ndarray((0,))
 
             # The center of contact points and the COM should be at 0
-            out = np.concatenate((out, mean_contacts[0][np.newaxis]))
+            out = np.concatenate((out, 10*mean_contacts[0][np.newaxis]))
             out = np.concatenate((out, contacts[1, :] - self.floor_z))
 
             # The projection of the center of mass should be at 0 and at 0.95 meter high
             out = np.concatenate((out, com - [0, 0.85]))
+
+            tau = np.zeros(model.nbQ(),)
+            qdot = np.zeros(model.nbQ(),)
+            qddot = fd_func(q, qdot, tau)
+            out = np.concatenate((out, np.array(marker_accel_func(q, qdot, qddot))[2, :]))
 
             return out
 

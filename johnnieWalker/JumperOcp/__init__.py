@@ -74,11 +74,8 @@ class JumperOcp:
         )
 
     def _set_initial_states(self):
-        initial_pose = np.array([self.jumper.body_at_first_node]).T
-        initial_velocity = np.array([self.jumper.initial_velocity]).T
-
         initial_pose = self.jumper.find_initial_root_pose()
-
+        initial_velocity = np.array([self.jumper.initial_velocity]).T
         self.initial_states = np.concatenate((initial_pose, initial_velocity))
 
     def _set_dimensions_and_mapping(self):
@@ -94,7 +91,7 @@ class JumperOcp:
 
     def _set_objective_functions(self):
         # Maximize the jump height
-        self.objective_functions.add(ObjectiveFcn.Mayer.MINIMIZE_COM_POSITION, weight=100, quadratic=False)
+        self.objective_functions.add(ObjectiveFcn.Mayer.MINIMIZE_COM_POSITION, weight=-100, quadratic=False)
 
         # Minimize time of the phase
         if self.jumper.time_min != self.jumper.time_max:

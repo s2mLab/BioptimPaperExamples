@@ -127,7 +127,7 @@ version   4
             parent Foot
             type sphere
             position 0.00000000000   -0.0300000000   -0.15000000000
-            radius 0.08
+            radius 0.05
             stiffness 1e9
             damping 2
             muStatic 1

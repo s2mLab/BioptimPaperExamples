@@ -18,7 +18,7 @@ class Jumper:
     initial_velocity = [0, 0, 0, 0, 0, 0]
     heel_idx = 0
     toe_idx = 1
-    floor_z = 0.18
+    floor_z = 0.10
 
     def __init__(self, path_to_models):
         self.model = biorbd.Model(path_to_models + "/" + self.model_files)
@@ -35,15 +35,14 @@ class Jumper:
             for r in seg.QRanges():
                 bound_min.append(r.min())
                 bound_max.append(r.max())
-        root_bounds = (bound_min[:n_root], bound_max[:n_root])
+        bounds = (bound_min, bound_max)
 
         q_sym = MX.sym("Q", self.model.nbQ(), 1)
         com_func = biorbd.to_casadi_func("com", self.model.CoM, q_sym)
         marker_func = biorbd.to_casadi_func("markers", self.model.markers, q_sym, True)
 
-        def objective_function(q_root, *args, **kwargs):
+        def objective_function(q, *args, **kwargs):
             # Center of mass
-            q = np.concatenate((q_root, body_pose_no_root))
             com = np.array(com_func(q))[1:, 0]  # Y and Z
             contacts = np.array(marker_func(q)[1:, :])  # Y and Z
             mean_contacts = np.mean(contacts, axis=1)
@@ -51,18 +50,19 @@ class Jumper:
             # Prepare output
             out = np.ndarray((0,))
 
-            # The center of contact points should be at 0
+            # The center of contact points and the COM should be at 0
             out = np.concatenate((out, mean_contacts[0][np.newaxis]))
             out = np.concatenate((out, contacts[1, :] - self.floor_z))
 
             # The projection of the center of mass should be at 0 and at 0.95 meter high
-            out = np.concatenate((out, com - [0, 0.95]))
+            out = np.concatenate((out, com - [0, 0.85]))
 
             return out
 
-        q_root0 = np.mean(root_bounds, axis=0)
-        pos = optimize.least_squares(objective_function, x0=q_root0, bounds=root_bounds)
-        return pos.x
+        q0 = np.mean(bounds, axis=0)
+        q0[n_root:] = body_pose_no_root
+        pos = optimize.least_squares(objective_function, x0=q0, bounds=bounds)
+        return pos.x[:, np.newaxis]
 
     def show(self, q):
         import bioviz

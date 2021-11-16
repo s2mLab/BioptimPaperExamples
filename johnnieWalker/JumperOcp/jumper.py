@@ -60,11 +60,11 @@ class Jumper:
             out = np.ndarray((0,))
 
             # The center of contact points and the COM should be at 0
-            out = np.concatenate((out, 10*mean_contacts[0][np.newaxis]))
+            out = np.concatenate((out, mean_contacts[0][np.newaxis]))
             out = np.concatenate((out, contacts[1, :] - self.floor_z))
 
             # The projection of the center of mass should be at 0 and at 0.95 meter high
-            out = np.concatenate((out, com - [0, 0.85]))
+            out = np.concatenate((out, (com - [mean_contacts[0], 0.75]) * 10))
 
             tau = np.zeros(model.nbQ(),)
             qdot = np.zeros(model.nbQ(),)

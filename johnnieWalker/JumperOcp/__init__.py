@@ -75,6 +75,7 @@ class JumperOcp:
 
     def _set_initial_states(self):
         initial_pose = self.jumper.find_initial_root_pose()
+        # self.jumper.show(initial_pose)
         initial_velocity = np.array([self.jumper.initial_velocity]).T
         self.initial_states = np.concatenate((initial_pose, initial_velocity))
 

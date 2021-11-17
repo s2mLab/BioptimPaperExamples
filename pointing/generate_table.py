@@ -14,39 +14,41 @@ def generate_table(out):
         use_ipopt = solver_name == "Ipopt"
         use_excitations = True
         if use_excitations:
-            weights = np.array([10, 1, 10, 100000, 1]) if not use_ipopt else np.array([10, 0.1, 10, 10000, 0.1])
+            weights = np.array([10, 5, 10, 100000, 1]) if not use_ipopt else np.array([10, 0.1, 10, 10000, 0.1])
         else:
             weights = np.array([100, 1, 1, 100000, 1]) if not use_ipopt else np.array([100, 1, 1, 100000, 1])
 
-        for i, ode_solver in enumerate([OdeSolver.RK4(), OdeSolver.COLLOCATION()]):
-            if use_ipopt is False and i == 1:
-                pass
+        for ode_solver in [OdeSolver.RK4(), OdeSolver.COLLOCATION()]:
+            if not use_ipopt and isinstance(ode_solver, OdeSolver.COLLOCATION):
+                continue
+            if isinstance(ode_solver, OdeSolver.COLLOCATION):
+                n_shooting = 120
             else:
-                biorbd_model_ip = biorbd.Model(model_path)
-                ocp = prepare_ocp(
-                    biorbd_model=biorbd_model_ip,
-                    final_time=2,
-                    n_shooting=200,
-                    use_sx=not use_ipopt,
-                    weights=weights,
-                    use_excitations=use_excitations,
-                    ode_solver=ode_solver
-                )
-                if use_ipopt:
-                    solver = Solver.IPOPT()
-                    solver.set_linear_solver("ma57")
-                    solver.set_tol(1e-8)
-                    solver.set_hessian_approximation("exact")
-                    solver.set_print_level(0)
+                n_shooting = 100
+            biorbd_model_ip = biorbd.Model(model_path)
+            ocp = prepare_ocp(
+                biorbd_model=biorbd_model_ip,
+                final_time=1,
+                n_shooting=n_shooting,
+                use_sx=not use_ipopt,
+                weights=weights,
+                use_excitations=use_excitations,
+                ode_solver=ode_solver
+            )
+            if use_ipopt:
+                solver = Solver.IPOPT()
+                solver.set_linear_solver("ma57")
+                solver.set_hessian_approximation("exact")
+                solver.set_print_level(0)
 
-                else:
-                    solver = Solver.ACADOS()
-                    solver.set_sim_method_num_steps(5)
-                    solver.set_convergence_tolerance(1e-8)
-                    solver.set_maximum_iterations(1000)
-                    solver.set_integrator_type("IRK")
-                    solver.set_hessian_approx("GAUSS_NEWTON")
-                    solver.set_print_level(0)
+            else:
+                solver = Solver.ACADOS()
+                solver.set_sim_method_num_steps(5)
+                solver.set_convergence_tolerance(1e-6)
+                solver.set_maximum_iterations(1000)
+                solver.set_integrator_type("ERK")
+                solver.set_hessian_approx("GAUSS_NEWTON")
+                solver.set_print_level(0)
 
             # --- Solve the program --- #
             tic = time()

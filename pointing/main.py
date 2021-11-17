@@ -63,18 +63,23 @@ if __name__ == "__main__":
     """
     use_ipopt = True
     use_excitations = True
-    use_collocation = False
+    use_collocation = True
     if use_excitations:
-        weights = np.array([10, 1, 10, 100000, 1]) if not use_ipopt else np.array([10, 0.1, 10, 10000, 0.1])
+        weights = np.array([10, 5, 10, 100000, 1]) if not use_ipopt else np.array([10, 0.1, 10, 10000, 0.1])
     else:
         weights = np.array([100, 1, 1, 100000, 1]) if not use_ipopt else np.array([10, 1, 1, 100000, 1])
+
     model_path = "/".join(__file__.split("/")[:-1]) + "/models/arm26.bioMod"
     biorbd_model = biorbd.Model(model_path)
     ode_solver = OdeSolver.COLLOCATION() if use_collocation else OdeSolver.RK4()
+    if use_collocation:
+        n_shooting = 120
+    else:
+        n_shooting = 100
     ocp = prepare_ocp(
         biorbd_model=biorbd_model,
-        final_time=2,
-        n_shooting=200,
+        final_time=1,
+        n_shooting=n_shooting,
         use_sx=not use_ipopt,
         weights=weights,
         use_excitations=use_excitations,
@@ -88,7 +93,7 @@ if __name__ == "__main__":
     else:
         solver = Solver.ACADOS()
         solver.set_sim_method_num_steps(5)
-        solver.set_convergence_tolerance(1e-8)
+        solver.set_convergence_tolerance(1e-6)
         solver.set_integrator_type("ERK")
         solver.set_hessian_approx("GAUSS_NEWTON")
         solver.set_maximum_iterations(1000)
@@ -103,7 +108,7 @@ if __name__ == "__main__":
     print(f"Solving time : {sol.solver_time_to_optimize}s")
     print(f"Single shooting error at {single_shooting_duration}s in translation (mm)= {ss_err_t}")
     print(f"Single shooting error at {single_shooting_duration}s in rotation (°)= {ss_err_r}")
-    # result.graphs()
+    sol.graphs()
     sol.animate(
         show_meshes=True,
         background_color=(1, 1, 1),

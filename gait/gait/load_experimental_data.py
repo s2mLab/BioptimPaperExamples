@@ -39,6 +39,7 @@ class C3dData:
         self.forces = self.get_forces(self.c3d)
         self.moments = self.get_moment(self.c3d)
         self.cop = self.get_cop(self.c3d)
+        self.emg = self.get_emg(self.c3d)
         self.events = self.get_event_rhs_rto(self.c3d)
         self.indices = self.get_indices()
         self.phase_time = self.get_time()
@@ -86,6 +87,41 @@ class C3dData:
         """
         platform = loaded_c3d["data"]["platform"][0]
         return platform["center_of_pressure"] * 1e-3
+
+    @staticmethod
+    def get_emg(loaded_c3d):
+        points = loaded_c3d["data"]["points"]
+        labels_points = loaded_c3d["parameters"]["POINT"]["LABELS"]["value"]
+
+        # GET THE MUSCULAR EXCITATION FROM EMG (NOT ALL MUSCLES)
+        EMG = np.zeros((19, len(points[0, 0, :])))
+
+        EMG[18, :] = points[0, labels_points.index("R_Tibialis_Anterior"), :].squeeze()  # R_Tibialis_Anterior
+
+        EMG[17, :] = points[0, labels_points.index("R_Soleus"), :].squeeze()  # R_Soleus
+        EMG[16, :] = points[0, labels_points.index("R_Gastrocnemius_Lateralis"), :].squeeze()  # R_Gastrocnemius_Lateralis
+        EMG[15, :] = points[0, labels_points.index("R_Gastrocnemius_Medialis"), :].squeeze()  # R_Gastrocnemius_Medialis
+
+        EMG[14, :] = points[0, labels_points.index("R_Vastus_Medialis"), :].squeeze()  # R_Vastus_Lat
+        EMG[13, :] = points[0, labels_points.index("R_Vastus_Medialis"), :].squeeze()  # R_Vastus_Int
+        EMG[12, :] = points[0, labels_points.index("R_Vastus_Medialis"), :].squeeze()  # R_Vastus_Medialis
+
+        EMG[11, :] = points[0, labels_points.index("R_Rectus_Femoris"), :].squeeze()  # R_Rectus_Femoris
+        EMG[10, :] = points[0, labels_points.index("R_Biceps_Femoris"), :].squeeze()  # R_Biceps_Femoris
+        EMG[9, :] = points[0, labels_points.index("R_Semitendinosus"), :].squeeze()  # R_Semitendinous
+        EMG[8, :] = points[0, labels_points.index("R_Semitendinosus"), :].squeeze()  # R_Semimembranous
+
+        EMG[7, :] = np.repeat(0.1, len(points[0, 0, :])) # R_Psoas (no exp data)
+        EMG[6, :] = np.repeat(0.1, len(points[0, 0, :]))  # R_Iliaque
+
+        EMG[5, :] = points[0, labels_points.index("R_Gluteus_Medius"), :].squeeze()  # R_Gluteus_Medius
+        EMG[4, :] = points[0, labels_points.index("R_Gluteus_Medius"), :].squeeze()  # R_Gluteus_Medius
+        EMG[3, :] = points[0, labels_points.index("R_Gluteus_Medius"), :].squeeze()  # R_Gluteus_Medius
+
+        EMG[2, :] = points[0, labels_points.index("R_Gluteus_Maximus"), :].squeeze()  # R_Gluteus_Maximus
+        EMG[1, :] = points[0, labels_points.index("R_Gluteus_Maximus"), :].squeeze()  # R_Gluteus_Maximus
+        EMG[0, :] = points[0, labels_points.index("R_Gluteus_Maximus"), :].squeeze()  # R_Gluteus_Maximus
+        return EMG
 
     @staticmethod
     def get_event_rhs_rto(loaded_c3d):

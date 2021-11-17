@@ -7,7 +7,6 @@ from time import time
 import numpy as np
 import biorbd_casadi as biorbd
 from bioptim import Solver, Shooting, OdeSolver
-import matplotlib.pyplot as plt
 
 from gait.load_experimental_data import LoadData
 from gait.ocp import prepare_ocp, get_phase_time_shooting_numbers, get_experimental_data
@@ -24,14 +23,6 @@ if __name__ == "__main__":
         biorbd.Model(root_path + "models/Gait_1leg_12dof_0contact.bioMod"),
     )
 
-    # Problem parameters
-    nb_q = biorbd_model[0].nbQ()
-    nb_qdot = biorbd_model[0].nbQdot()
-    nb_tau = biorbd_model[0].nbGeneralizedTorque()
-    nb_phases = len(biorbd_model)
-    nb_markers = biorbd_model[0].nbMarkers()
-
-    # Generate data from file
     # --- files path ---
     c3d_file = root_path + "data/normal01_out.c3d"
     q_kalman_filter_file = root_path + "data/normal01_q_KalmanFilter.txt"
@@ -52,7 +43,7 @@ if __name__ == "__main__":
         q_ref=q_ref,
         qdot_ref=qdot_ref,
         nb_threads=8,
-        ode_solver=OdeSolver.RK4(), # collocation (True/False, "method", polynomial degree)/ (True, "legendre", 5)
+        ode_solver=OdeSolver.RK4(),
     )
 
     tic = time()
@@ -62,11 +53,10 @@ if __name__ == "__main__":
     solver.set_convergence_tolerance(1e-3)
     solver.set_hessian_approximation("exact")
     solver.set_maximum_iterations(3000)
-    solver.show_online_optim=False
+    solver.show_online_optim = False
     sol = ocp.solve(solver=solver)
     toc = time() - tic
 
-    ocp.save(sol, "gait_coloc.bo")
     sol_ss = sol.integrate(shooting_type=Shooting.SINGLE_CONTINUOUS, merge_phases=False)
     ss_err_trans = np.sqrt(np.mean((sol_ss.states[-1]["q"][:3, -1] - sol.states[-1]["q"][:3, -1]) ** 2))
     ss_err_rot = np.sqrt(np.mean((sol_ss.states[-1]["q"][3:, -1] - sol.states[-1]["q"][3:, -1]) ** 2))

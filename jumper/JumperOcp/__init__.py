@@ -1,6 +1,5 @@
 import numpy as np
 from bioptim import (
-    OdeSolver,
     Node,
     OptimalControlProgram,
     ConstraintFcn,
@@ -19,7 +18,7 @@ from bioptim import (
     Solver,
 )
 
-from .jumper import Jumper
+from .jumper import Jumper, JumperRK4, JumperCOLLOCATION
 from .penalty_functions import com_dot_z, marker_on_floor, contact_force_continuity
 from .viz import add_custom_plots
 
@@ -31,7 +30,6 @@ class JumperOcp:
         n_phases,
         n_thread=8,
         control_type=ControlType.CONSTANT,
-        ode_solver=OdeSolver.COLLOCATION(),
     ):
         self.n_q, self.n_qdot, self.n_tau = -1, -1, -1
         self.mapping_list = BiMappingList()
@@ -81,7 +79,7 @@ class JumperOcp:
             phase_transitions=self.phase_transitions,
             n_threads=n_thread,
             control_type=self.control_type,
-            ode_solver=ode_solver,
+            ode_solver=self.jumper.ode_solver,
         )
 
     def _set_initial_states(self):

@@ -2,7 +2,7 @@ import biorbd_casadi as biorbd
 from scipy import optimize
 import numpy as np
 from casadi import MX
-from bioptim import BiMapping
+from bioptim import BiMapping, OdeSolver
 
 
 class Jumper:
@@ -17,6 +17,9 @@ class Jumper:
     time_max = 0.5, 0.5, 2.0, 0.5, 0.5
     phase_time = 0.3, 0.2, 0.6, 0.2, 0.2
     n_shoot = 30, 15, 20, 30, 30
+    ode_solver = None
+    n_max_iter_limited_memory = None
+    n_max_iter_exact = None
 
     q_mapping = BiMapping(
         [0, 1, 2, 3, 3, 4, 5, 6, 4, 5, 6],
@@ -115,3 +118,23 @@ class Jumper:
         b = bioviz.Viz(self.models[0].path().absolutePath().to_string())
         b.set_q(q if len(q.shape) == 1 else q[:, 0])
         b.exec()
+
+
+class JumperRK4(Jumper):
+    n_shoot = 25, 10, 20, 30, 30
+    n_max_iter_limited_memory = 75
+    n_max_iter_exact = 1000
+
+    def __init__(self, path_to_models):
+        super(JumperRK4, self).__init__(path_to_models)
+        self.ode_solver = OdeSolver.RK4()
+
+
+class JumperCOLLOCATION(Jumper):
+    n_shoot = 25, 10, 20, 30, 30
+    n_max_iter_limited_memory = 175
+    n_max_iter_exact = 1000
+
+    def __init__(self, path_to_models):
+        super(JumperCOLLOCATION, self).__init__(path_to_models)
+        self.ode_solver = OdeSolver.COLLOCATION()

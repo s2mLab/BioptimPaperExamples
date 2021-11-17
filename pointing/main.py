@@ -12,56 +12,11 @@ from bioptim import Solver, Shooting, OdeSolver
 from pointing.ocp import prepare_ocp
 
 
-def compute_error_single_shooting(sol, duration):
-    sol_merged = sol.merge_phases()
-
-    if sol_merged.phase_time[-1] < duration:
-        raise ValueError(
-            f"Single shooting integration duration must be smaller than ocp duration :{sol_merged.phase_time[-1]} s"
-        )
-
-    trans_idx = []
-    rot_idx = []
-    for i in range(sol.ocp.nlp[0].model.nbQ()):
-        if sol.ocp.nlp[0].model.nameDof()[i].to_string()[-4:-1] == "Rot":
-            rot_idx += [i]
-        else:
-            trans_idx += [i]
-    rot_idx = np.array(rot_idx)
-    trans_idx = np.array(trans_idx)
-
-    sol_int = sol.integrate(
-        shooting_type=Shooting.SINGLE_CONTINUOUS,
-        merge_phases=True,
-        keep_intermediate_points=False,
-        use_scipy_integrator=True,
-    )
-    sn_1s = int(sol_int.ns[0] / sol_int.phase_time[-1] * duration)  # shooting node at {duration} second
-    if len(rot_idx) > 0:
-        single_shoot_error_r = (
-            np.sqrt(np.mean((sol_int.states["q"][rot_idx, sn_1s] - sol_merged.states["q"][rot_idx, sn_1s]) ** 2))
-            * 180
-            / np.pi
-        )
-    else:
-        single_shoot_error_r = "N.A."
-    if len(trans_idx) > 0:
-        single_shoot_error_t = (
-            np.sqrt(
-                np.mean((sol_int.states["q"][trans_idx, 5 * sn_1s] - sol_merged.states["q"][trans_idx, sn_1s]) ** 2)
-            )
-            / 1000
-        )
-    else:
-        single_shoot_error_t = "N.A."
-    return single_shoot_error_t, single_shoot_error_r
-
-
 if __name__ == "__main__":
     """
     Prepare and solve and animate a reaching task ocp
     """
-    use_ipopt = True
+    use_ipopt = False
     use_excitations = True
     use_collocation = True
     if use_excitations:
@@ -71,7 +26,7 @@ if __name__ == "__main__":
 
     model_path = "/".join(__file__.split("/")[:-1]) + "/models/arm26.bioMod"
     biorbd_model = biorbd.Model(model_path)
-    ode_solver = OdeSolver.COLLOCATION() if use_collocation else OdeSolver.RK4()
+    ode_solver = OdeSolver.COLLOCATION() if (use_collocation and use_ipopt) else OdeSolver.RK4()
     if use_collocation:
         n_shooting = 120
     else:
@@ -100,15 +55,14 @@ if __name__ == "__main__":
     sol = ocp.solve(solver=solver)
 
     # --- Show results --- #
-    single_shooting_duration = 1
-    ss_err_t, ss_err_r = compute_error_single_shooting(sol, 1)
-
     print("*********************************************")
     print(f"Problem solved with {solver.type}")
+    if use_ipopt:
+        print(f"Trasncription method: {ode_solver.__str__()}")
+    else:
+        print(f"Transcription method: multiple shooting")
     print(f"Solving time : {sol.solver_time_to_optimize}s")
-    print(f"Single shooting error at {single_shooting_duration}s in translation (mm)= {ss_err_t}")
-    print(f"Single shooting error at {single_shooting_duration}s in rotation (°)= {ss_err_r}")
-    sol.graphs()
+
     sol.animate(
         show_meshes=True,
         background_color=(1, 1, 1),

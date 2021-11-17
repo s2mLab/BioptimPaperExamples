@@ -16,7 +16,7 @@ if __name__ == "__main__":
     """
     Prepare and solve and animate a reaching task ocp
     """
-    use_ipopt = True
+    use_ipopt = False
     use_excitations = True
     use_collocation = True
     if use_excitations:
@@ -26,7 +26,7 @@ if __name__ == "__main__":
 
     model_path = "/".join(__file__.split("/")[:-1]) + "/models/arm26.bioMod"
     biorbd_model = biorbd.Model(model_path)
-    ode_solver = OdeSolver.COLLOCATION() if use_collocation else OdeSolver.RK4()
+    ode_solver = OdeSolver.COLLOCATION() if (use_collocation and use_ipopt) else OdeSolver.RK4()
     if use_collocation:
         n_shooting = 120
     else:

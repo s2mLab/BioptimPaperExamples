@@ -49,6 +49,9 @@ def prepare_ocp(biorbd_model_path: str, final_time: float, n_shooting: int, ode_
 
     # Add objective functions
     objective_functions = ObjectiveList()
+    if isinstance(ode_solver, OdeSolver.COLLOCATION):
+        objective_functions.add(ObjectiveFcn.Lagrange.MINIMIZE_STATE, key="q", weight=1e-6)
+        objective_functions.add(ObjectiveFcn.Lagrange.MINIMIZE_STATE, key="qdot", weight=1e-6)
     objective_functions.add(ObjectiveFcn.Lagrange.MINIMIZE_STATE, key="qdot", node=Node.ALL, index=5, weight=-1, quadratic=False)
     objective_functions.add(ObjectiveFcn.Lagrange.MINIMIZE_CONTROL, key="tau", weight=1e-6)
 

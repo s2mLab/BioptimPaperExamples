@@ -6,7 +6,7 @@ from pointing.generate_table import generate_table as pointing_table
 from somersault.generate_table import generate_table as somersault_table
 
 import numpy as np
-from bioptim import Shooting, OdeSolver
+from bioptim import Shooting, OdeSolver, SolutionIntegrator
 
 
 divergence_threshold = 10
@@ -82,7 +82,7 @@ class TableOCP:
                 rot_idx = np.array(list(set(rot_idx)))
                 trans_idx = np.array(list(set(trans_idx)))
 
-                sol_int = sol.integrate(shooting_type=Shooting.SINGLE_CONTINUOUS, merge_phases=True, use_scipy_integrator=True)
+                sol_int = sol.integrate(shooting_type=Shooting.SINGLE_CONTINUOUS, merge_phases=True, integrator=SolutionIntegrator.SCIPY_RK45)
                 jumps = int((sol_merged.states["q"].shape[1] - 1) / (sol_int.states["q"].shape[1] - 1))
                 if len(rot_idx) > 0:
                     error_r = sol_int.states["q"][rot_idx, :] - sol_merged.states["q"][rot_idx, ::jumps]
@@ -115,7 +115,7 @@ table.add("pendulum")
 table.add("pointing")
 table.add("somersault")
 
-gait_table(table["gait"])  # requires 16Gb of RAM and takes time to converge (~1h)
+# gait_table(table["gait"])  # requires 16Gb of RAM and takes time to converge (~1h)
 jumper_table(table["jumper"])
 mhe_table(table["mhe"])
 pendulum_table(table["pendulum"])

@@ -29,4 +29,6 @@ Once everything is properly installed, to generate the table of the paper (excep
 
 Please note that the `generate_table.py` files use `ma57`, while `main.py` files use `mumps`, that is so one which does not have `ma57` still can run the examples.
 
+**If anything goes wrong (weird behavior of the solver or you are not able to reproduce the results of the paper), please increase the print level of the solver up to 5 (in pointing/pointing/ocp.py for instance) to catch the probable errors that you are missing with the optimized settings by default.**
+
 Thanks for using Bioptim!
